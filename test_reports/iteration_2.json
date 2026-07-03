@@ -1,0 +1,52 @@
+{
+  "summary": "Full backend + frontend verification of the new Book-a-demo modal flow and the real Simple Icons partner-logo strip. Backend: created /app/backend/tests/test_demo_api.py (pytest, 7 cases) — all pass, including happy-path persistence with pre/post GET /api/demo/count delta, 422 validation for invalid email, missing required field, and empty name. Frontend: Playwright sweep against the public preview URL — all four Book-a-demo entry points (nav-book-demo, hero-book-demo, pricing-cta-scale, final-book-demo) open the same modal (data-testid=demo-modal), modal closes via demo-modal-close (X) and via demo-modal-overlay, full form submission triggers POST /api/demo → 201, demo-success renders with the confirmation copy including the submitted email, and the backend count increments by exactly 1 (verified 3 → 4). Social proof strip renders 18 <img> tags (9 unique brands × 2 for marquee) — GitHub, GitLab, Vercel, Linear, Stripe, Shopify, Datadog, Sentry, Notion — all with naturalWidth > 0 (none broken). Section header 'Trusted by engineering teams that ship daily.' and 'Marcus Devlin, Staff Engineer' testimonial intact. Banned-word audit clean: no 'contact us', 'up to', 'starting from', '$1m', '1 million'. Zero page errors; the single console 'error' is the expected 422 from our own invalid-email validation probe.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_acceptance_criteria": {
+    "modal_open_from_nav_book_demo": "PASS",
+    "modal_open_from_hero_book_demo": "PASS",
+    "modal_open_from_pricing_cta_scale": "PASS",
+    "modal_open_from_final_book_demo": "PASS",
+    "modal_close_via_X": "PASS (demo-modal detaches from DOM)",
+    "modal_close_via_overlay": "PASS (demo-modal-overlay click closes)",
+    "happy_path_submit_shows_demo_success": "PASS (success copy includes submitted email 'playwright_test@example.com')",
+    "post_api_demo_returns_201": "PASS (verified via pytest; also implicitly via UI success state)",
+    "count_increments_after_submit": "PASS (pre=3, post=4 via GET /api/demo/count before and after UI submit)",
+    "invalid_email_returns_422": "PASS (both pytest and browser fetch)",
+    "missing_required_field_returns_422": "PASS (pytest)",
+    "empty_name_returns_422": "PASS (pytest — min_length=1 enforced)",
+    "partner_logos_9_unique_brands_duplicated": "PASS (18 imgs, unique brands: Datadog, GitHub, GitLab, Linear, Notion, Sentry, Shopify, Stripe, Vercel)",
+    "partner_logos_not_broken": "PASS (0 imgs with naturalWidth=0; served from cdn.simpleicons.org)",
+    "social_proof_header_and_testimonial_intact": "PASS ('Trusted by engineering teams that ship daily.' + 'Marcus Devlin, Staff Engineer')",
+    "no_runtime_console_errors_on_load": "PASS (0 pageerrors; only console error is our own probe's 422)",
+    "banned_words_spot_check": "PASS (none of 'contact us', 'up to', 'starting from', '$1m', '1 million' present)",
+    "backend_health_endpoint": "PASS (/api/health returns {status: ok, service: zelarion})"
+  },
+  "critical_code_review_comments": [
+    "Info: server.py returns the raw ObjectId via alias '_id' inside DemoRequest — the PyObjectId BeforeValidator stringifies it, so the JSON response contains a string 'id' field. No ObjectId serialization leak observed in the POST /api/demo response. Good.",
+    "Info: DemoRequestIn uses EmailStr (validates email format) and min_length=1 on name/company/team_size — validation surface is correct. 422 returned in all three negative cases.",
+    "Minor: server.py has no explicit index on demo_requests. For scale, consider a compound index on (email, created_at) or at least a TTL/created_at index. Non-blocking for MVP.",
+    "Minor: CORS_ORIGINS defaults to '*' with allow_credentials=True. FastAPI/Starlette silently rejects credentials when origin is '*', which is fine here (no auth), but be aware once auth is added.",
+    "Minor: DemoModal.jsx catches ALL fetch failures into a single generic 'Something went wrong.' error — a 422 (validation) will be indistinguishable from a network error in the UI. Not part of this iteration's acceptance criteria; consider surfacing the server's Pydantic error detail for a nicer UX.",
+    "Minor (from iter 1, still present): ScrollExpandShowcase logs two framer-motion 'container has a non-static position' warnings; non-blocking."
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_demo_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/tests/test_demo_api.py (new — 7 pytest cases for /api/health, /api/demo, /api/demo/count)"
+  ],
+  "success_rate": { "backend": "100% (7/7)", "frontend": "100% (all acceptance criteria)" },
+  "test_credentials": "N/A — no auth on demo endpoints",
+  "seed_data_creation": "6 demo_requests documents inserted with TEST_/playwright_test_ prefixes across pytest and one UI submission. Non-destructive; can be dropped via db.demo_requests.delete_many({email: /^test_|^playwright_test_/i}) if desired.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Demo modal + backend persistence + real logo strip all green. Regression suite lives at /app/backend/tests/test_demo_api.py — reuse for any future changes to /api/demo. Frontend Playwright coverage covered: 4 CTA entry points, X + overlay close, happy-path submit with count delta, brand-logo integrity (9 unique via cdn.simpleicons.org), banned-word audit, page-error count. If the modal gains new fields (e.g. phone) or the endpoint adds new validation, extend TestDemoCreate accordingly.",
+  "rca of the issue": "N/A — no bugs found this iteration."
+}

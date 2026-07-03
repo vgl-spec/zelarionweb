@@ -1,0 +1,54 @@
+{
+  "summary": "Frontend-only UI/integration testing of the Zelarion marketing landing page. Ran a comprehensive Playwright sweep across desktop (1920x1080) and mobile (390x844): section rendering, all required data-testids, hero content, scroll behaviour, showcase scroll-expand (no trap), metrics count-up, features/how/integrations/security content, pricing tiers, founders name-only rule, FAQ accordion expand/collapse, final CTA, footer, R3F 3D crystal presence, banned-word content audit (case-insensitive across textContent), mobile hamburger menu, and horizontal-overflow check at 4 scroll positions. Every acceptance criterion passed. No page (runtime) errors, no broken images, no horizontal overflow, no banned marketing language.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Social Proof / Founders area (desktop, ~y=8500-11000)",
+        "issues": [
+          "The TravellingCore R3F crystal at its docking waypoint (progress ~0.73, scale 1.35) briefly renders very large behind the testimonial and just above the founders grid. Text remains legible (canvas is z-2, content is z-10) so it is not a functional bug, but the wireframe edges visually compete with the pull-quote. Consider capping max scale to ~1.05 at this waypoint or lowering opacity so the crystal reads as a background prop rather than a foreground element in the testimonial band."
+        ]
+      }
+    ]
+  },
+  "verified_acceptance_criteria": {
+    "page_load_no_runtime_errors": "PASS (0 pageerrors; only benign warnings: 2 framer-motion 'container non-static position' warnings from ScrollExpandShowcase useScroll target, and WebGL GL_CLOSE_PATH_NV performance messages from headless GL driver)",
+    "navbar": "PASS – site-nav present with nav-platform/solutions/pricing/company, nav-signin, nav-book-demo. Clicking nav-pricing smooth-scrolls to pricing (y 0 -> 9486, pricing-section in viewport).",
+    "hero": "PASS – headline 'Ship with proof, not hope.', subhead includes '90 seconds', hero-book-demo + hero-live-run present, aurora background + CSS fallback visible (teal/indigo glow), dashboard.png loads (naturalWidth=1536).",
+    "showcase_no_trap": "PASS – 300vh sticky section; scrollY progresses monotonically (1296 -> 3240 -> 4860) past the section without hijack. Eyebrow 'Zelarion Platform' + 'Every release, verified' + 'Scroll to expand' + two expanded paragraphs (byte-identical dependency tree, line-by-line diff) all render.",
+    "metrics": "PASS – four tiles show exactly 12,400 / 99.98% / 90 sec / 38 with the correct labels; framer-motion count-up triggers on view.",
+    "features": "PASS – exactly 3 editorial rows (Deterministic runs, Flake detection, One-line integration), each with a bespoke product visual, alternating left/right.",
+    "how_it_works": "PASS – four steps Connect / Commit / Run / Verdict.",
+    "integrations": "PASS – '38' heading + 5 groups (Version control, CI, Languages & runtimes, Test frameworks, Alerts).",
+    "security": "PASS – SOC 2 Type II, AES-256, 99.98% uptime, SSO and SCIM.",
+    "pricing": "PASS – pricing-team ($49), pricing-scale ($89 featured 'Most chosen'), pricing-enterprise ($2,400 / month flat). Each with pricing-cta-* 'Book a demo'. No 'contact us', 'custom', 'up to', 'starting from', 'as low as' anywhere in pricing section.",
+    "social_proof": "PASS – 'Trusted by engineering teams that ship daily.' + logo marquee (7 logos x 2 for infinite scroll) + testimonial attributed to 'Marcus Devlin, Staff Engineer'.",
+    "founders": "PASS – EXACTLY 2 founders. founder-0 textContent = 'Vergel A. BautistaFounder'; founder-1 textContent = 'Lara Aaliyah L. QuintoCo-Founder'. Portraits load (naturalWidth=1024). NO bio, NO quote, NO socials, NO title beyond Founder/Co-Founder. Verified via full textContent (not just innerText).",
+    "faq": "PASS – faq-item-0 accordion expands (height 81 -> 129, answer '90 seconds' visible) and collapses back to 81 on second click.",
+    "final_cta": "PASS – 'Stop guessing. Start verifying.' + final-book-demo button.",
+    "footer": "PASS – Platform / Company / Legal columns, oversized 'Zelarion' wordmark with per-letter GSAP staggered clip reveal, thin divider, '© 2026 Zelarion. All rights reserved.' + '99.98% uptime · verdict in 90 seconds'.",
+    "travelling_3d_core": "PASS – R3F <canvas> present in fixed z-2 layer (1920x1080), faceted teal icosahedron with cyan edges + indigo inner core, animates on scroll via scrollStore.progress.",
+    "content_rule_audit": "PASS – case-insensitive textContent search across the whole rendered DOM returned ZERO occurrences of: $1M, 1 million, ARR, revenue, on track, TBA, TBD, coming soon, up to, as low as, starting from, approximate, and more, contact us, custom pricing, contact sales.",
+    "responsive_mobile_390px": "PASS – nav-mobile-toggle visible (desktop CTA cluster display:none), tapping toggle opens nav-mobile-menu with Platform/Solutions/Pricing/Company + Sign in + Book a demo. Sections stack vertically. scrollWidth == 390 at 0%, 25%, 50%, 75%, 100% — no horizontal overflow anywhere on the 16,629px-tall mobile page."
+  },
+  "critical_code_review_comments": [
+    "Minor: ScrollExpandShowcase logs two framer-motion warnings — 'container has a non-static position' — because useScroll({target: sectionRef}) is called on a section that is `relative h-[300vh]` but the sticky inner has no relative parent chain issue that framer-motion is happy with. Non-blocking (scroll math still works), but worth adding `position: relative` on the sticky inner or switching to a layoutEffect target ref to silence the warning.",
+    "Minor: TravellingCore keyframe p=0.73 uses scale 1.35 which visually dominates the testimonial band on desktop (see design_issues). Consider tapering to <=1.0 at this waypoint.",
+    "Info: `.env` values look correct; frontend uses REACT_APP_BACKEND_URL for the public URL and no hardcoded URLs found in components."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL polish only: reduce TravellingCore scale at the p=0.73 waypoint from 1.35 to ~1.0 so the wireframe crystal stops visually crowding the testimonial pull-quote and the founders row above.",
+    "OPTIONAL polish only: silence the two framer-motion 'non-static position' warnings by ensuring the useScroll target element itself carries `position: relative` (or move the ref to the inner sticky element)."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend-only test)", "frontend": "100%" },
+  "test_credentials": "N/A — public marketing site, no auth flows",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Landing page ships clean. All 15 data-testid contracts from the request are honoured: site-nav, nav-{platform,solutions,pricing,company}, nav-signin, nav-book-demo, nav-mobile-toggle, nav-mobile-menu, hero-section, hero-book-demo, hero-live-run, showcase-section, metrics-section, stat-tile-{0..3}, features-section, how-section, integrations-section, security-section, pricing-section, pricing-{team,scale,enterprise}, pricing-cta-{team,scale,enterprise}, social-proof-section, founders-section, founder-{0,1}, faq-section, faq-item-{0..5}, final-cta-section, final-book-demo, site-footer. Banned-word audit is comprehensive (case-insensitive textContent across whole page) so future edits should keep those blacklists intact. No backend to test.",
+  "rca of the issue": "N/A — no bugs found."
+}
