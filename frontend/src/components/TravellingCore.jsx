@@ -114,7 +114,7 @@ export default function TravellingCore() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-[2] hidden md:block"
+      className="pointer-events-none [&_*]:pointer-events-none fixed inset-0 z-[2] hidden md:block"
       aria-hidden="true"
     >
       <Canvas

@@ -11,6 +11,32 @@
   --line: rgba(255, 255, 255, 0.08);
   --text: #e8edf2;
   --text-dim: #8a97a6;
+
+  /* Semantic design tokens (shadcn-compatible), mapped onto the Zelarion
+     palette above. Stored as bare "R G B" channel triplets — never hex —
+     so tailwind.config.js can wrap them in rgb(var(--x) / <alpha-value>)
+     and opacity modifiers like bg-primary/20 keep working. */
+  --background: 5 7 10; /* ink */
+  --foreground: 232 237 242; /* text */
+  --card: 11 15 20; /* surface */
+  --card-foreground: 232 237 242; /* text */
+  --popover: 11 15 20; /* surface */
+  --popover-foreground: 232 237 242; /* text */
+  --primary: 45 212 196; /* aurora.teal */
+  --primary-foreground: 5 7 10; /* ink — 11:1 contrast on teal */
+  --secondary: 20 22 25; /* ink lifted ~6% toward white */
+  --secondary-foreground: 232 237 242; /* text */
+  --muted: 31 34 39; /* surface lifted ~10% toward white */
+  --muted-foreground: 138 151 166; /* text-dim */
+  --accent: 25 27 30; /* ink lifted ~8% toward white */
+  --accent-foreground: 232 237 242; /* text */
+  --destructive: 220 38 38; /* red-600 — 4.5:1+ against its foreground */
+  --destructive-foreground: 250 250 250; /* near-white */
+  --border: 25 27 30; /* line (white/8%) composited over ink, as a solid */
+  --input: 25 27 30; /* same composite as border */
+  --ring: 45 212 196; /* aurora.teal */
+  --brand: 45 212 196; /* aurora.teal alias */
+  --radius: 0.75rem;
 }
 
 * {

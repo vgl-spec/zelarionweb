@@ -9,6 +9,42 @@
 
 ## 2026-08-28
 
+- **An inline `style` on an element outranks every `:hover` rule in a stylesheet.** The
+  `CursorTrailContact` CTA underline set its base state inline and its hover state in a
+  `<style>` block, so it could never animate -- the acceptance criterion "underline grows to
+  full width on hover" was silently unmet, and a build plus a render smoke test both passed
+  anyway. Only a computed-style check before/after `hover()` caught it. Fix: base state moved
+  into the stylesheet. **A visual acceptance criterion needs a test that reads the computed
+  value, not one that asserts the element exists.**
+
+- **Nesting a fixed-position canvas inside `<main>` moved it into main's stacking context and
+  it swallowed every click beneath it.** `TravellingCore` is `fixed inset-0 z-[2]`; as a
+  sibling of `<main class="relative z-10">` it sits behind, but moved *inside* main both
+  compete in the same context and `z-2` beat the contact section's `z-auto`. The giant CTA
+  became unclickable. Compounding it: the wrapper's `pointer-events-none` does not protect
+  anything, because **@react-three/fiber's own container resets `pointer-events: auto` on the
+  canvas.** Fix: keep the canvas a sibling of `<main>`, and add `[&_*]:pointer-events-none` so
+  a decorative canvas can never capture input. `document.elementsFromPoint()` at an element's
+  centre is the way to prove what is actually on top.
+
+- **A backtick inside a CSS comment terminates the JS template literal holding the CSS.**
+  Components that inject styles via `<style dangerouslySetInnerHTML={{ __html: STYLES }} />`
+  hold that CSS in a template literal, so writing `` `transform` `` for emphasis in a comment
+  breaks the whole file with a misleading "Missing semicolon". Hit twice in one session. Never
+  use backticks inside those comments.
+
+- **Vercel prefers `yarn.lock` over `package-lock.json` when both are present.** This repo
+  tracked both; a tool run mid-session added 440 lines to `yarn.lock`, which would have made
+  the deploy install a dependency graph nobody built or tested. Removed `yarn.lock`.
+  **Two lockfiles is not a tidiness issue, it is a "production runs different code than CI"
+  issue.**
+
+- **CRA emits one chunk unless you split it.** The initial bundle was 1.21 MB gzipped because
+  `shaders` (34 MB of source) and `three` (30 MB) were both in the eager path for decorative
+  background canvases. `React.lazy` on the two canvas modules took the main chunk to 232 kB
+  (-81%). The split must be at the *canvas* boundary, not the section boundary -- lazy-loading
+  the whole contact section would have gated its heading and CTA behind the shader download.
+
 - **A hook that fails closed on a missing dependency can deny every tool call in the repo.**
   Three of the dotclaude safety hooks (`block-dangerous-commands.sh`, `protect-files.sh`,
   `warn-large-files.sh`) emit `permissionDecision: deny` when `jq` is absent. `jq` is not

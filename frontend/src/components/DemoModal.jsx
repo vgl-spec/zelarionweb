@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, Check, ArrowUpRight, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -10,6 +10,26 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const TEAM_SIZES = ['1–10', '11–50', '51–200', '201–500', '500+'];
 
 const EASE = [0.16, 1, 0.3, 1];
+
+const IDEMPOTENCY_KEY_ALPHABET =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+// One key identifies one user intent (opening the dialog), reused across every retry
+// of that same submission so a timeout/network retry replays server-side instead of
+// creating a second demo_requests row. crypto.randomUUID() is only exposed in secure
+// contexts (HTTPS or localhost), so plain-HTTP local dev and older browsers need a
+// fallback -- built only from [A-Za-z0-9_-] to satisfy the server's Idempotency-Key
+// charset.
+function makeIdempotencyKey() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  let key = '';
+  for (let i = 0; i < 32; i++) {
+    key += IDEMPOTENCY_KEY_ALPHABET[Math.floor(Math.random() * IDEMPOTENCY_KEY_ALPHABET.length)];
+  }
+  return key;
+}
 
 export function DemoProvider({ children }) {
   const [open, setOpen] = useState(false);
@@ -36,6 +56,29 @@ function DemoModal({ open, onClose }) {
   const [status, setStatus] = useState('idle'); // idle | loading | done | error
   const [error, setError] = useState('');
 
+  // React state is asynchronous, so a status === 'loading' check alone can't stop two
+  // events in the same tick (Enter key + click, or a double dispatch) from both reading
+  // the stale 'idle' value -- the disabled button attribute doesn't intercept a form's
+  // Enter-key submit either. This ref is mutated synchronously, before either handler
+  // yields, so it's the actual guard; the disabled attribute stays as a second layer.
+  const submittingRef = useRef(false);
+
+  // One idempotency key per user intent: freshly generated whenever the dialog opens,
+  // and reused across every retry of that same submission until a request actually
+  // succeeds (see submit()). Not created inside the handler -- that would mint a new
+  // key per attempt and defeat the server's replay dedupe entirely.
+  // Seeded eagerly rather than left null until the open-effect commits: a null ref
+  // would be serialized into the header as the literal string "null", which passes
+  // the server's key charset check, so every such request would share one key and a
+  // replay would return another user's record. Unreachable today, but the failure
+  // mode is PII disclosure, so it is closed structurally rather than by reasoning.
+  const idempotencyKeyRef = useRef(makeIdempotencyKey());
+  useEffect(() => {
+    if (open) {
+      idempotencyKeyRef.current = makeIdempotencyKey();
+    }
+  }, [open]);
+
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const reset = () => {
@@ -52,19 +95,45 @@ function DemoModal({ open, onClose }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setStatus('loading');
     setError('');
     try {
       const res = await fetch(`${API}/demo`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKeyRef.current,
+        },
         body: JSON.stringify(form),
       });
+
+      if (res.status === 422) {
+        const body = await res.json().catch(() => null);
+        const messages = body?.detail?.map((d) => d.message).filter(Boolean);
+        setError(
+          messages && messages.length
+            ? messages.join(' ')
+            : 'Please check the form and try again.'
+        );
+        setStatus('error');
+        return;
+      }
+
       if (!res.ok) throw new Error('Request failed');
+
+      // 200 (replay of an already-processed key) and 201 (first write) both mean the
+      // server now holds exactly one record for this intent -- the user sees the same
+      // success screen either way, since a replay isn't a different outcome for them,
+      // just a retry landing on a request that had already gone through.
+      idempotencyKeyRef.current = makeIdempotencyKey();
       setStatus('done');
     } catch (err) {
       setStatus('error');
       setError('Something went wrong. Please try again.');
+    } finally {
+      submittingRef.current = false;
     }
   };
 
