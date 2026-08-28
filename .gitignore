@@ -1,10 +1,10 @@
-.env
-.env.*
+.env*
 *.env
 credentials.json
 *.pem
 *.key
 .credentials
+CLAUDE.local.md
 
 node_modules/
 __pycache__/
