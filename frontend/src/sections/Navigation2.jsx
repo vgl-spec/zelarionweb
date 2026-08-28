@@ -24,31 +24,31 @@ import {
 } from '../components/ui/navigation-menu';
 import { cn } from '../lib/utils';
 
-// Simple in-page anchors vs. real routes: Work/Team/FAQ live as sections on
-// the home page, Contact is its own route. Keeping these as plain <a>/<Link>
-// (not client-side scroll logic) means they also work correctly from any
-// other route, including a hard refresh.
+// Home, Work, and FAQ are each their own route (see App.js's ROUTES) -- rendered as
+// router <Link>s so they work correctly from any page, including a hard refresh.
 const PRIMARY_LINKS = [
+  { label: 'Home', to: '/' },
   { label: 'Work', to: '/work' },
-  { label: 'Team', to: '/team' },
   { label: 'FAQ', to: '/faq' },
 ];
 
-const DESIGN_LINKS = [
-  { label: 'Product Design', href: '/work' },
-  { label: 'Brand Identity', href: '/work' },
-  { label: 'Design Systems', href: '/work' },
-  { label: 'Motion & Interaction', href: '/work' },
+// The four things Zelarion actually builds, mirroring ServicesSection's SERVICES
+// array and deep-linking to that entry on /services. The previous menu listed eight
+// invented sub-services ("Cloud & DevOps", "QA & Testing") that appear nowhere else
+// on the site, and every one of them pointed at /work -- eight different labels, one
+// destination, none of it what the label promised.
+const SERVICE_LINKS = [
+  { label: 'Websites that make the case for you', to: '/services#websites' },
+  { label: 'Commerce and distribution systems', to: '/services#commerce' },
+  { label: 'Internal platforms and member systems', to: '/services#internal-platforms' },
+  { label: 'Ongoing support after launch', to: '/services#support' },
 ];
 
-const ENGINEERING_LINKS = [
-  { label: 'Frontend Engineering', href: '/work' },
-  { label: 'Backend & APIs', href: '/work' },
-  { label: 'Cloud & DevOps', href: '/work' },
-  { label: 'QA & Testing', href: '/work' },
+const SERVICE_PILLS = [
+  { label: 'Web', to: '/services#websites' },
+  { label: 'Commerce', to: '/services#commerce' },
+  { label: 'Platforms', to: '/services#internal-platforms' },
 ];
-
-const SERVICE_PILLS = ['Web', 'Mobile', 'Brand'];
 
 // Makes the "Services" mega-panel bleed edge-to-edge under the navbar
 // instead of sitting in a small popover sized to the trigger. `static`
@@ -62,6 +62,12 @@ const SERVICE_PILLS = ['Web', 'Mobile', 'Brand'];
 // the viewport itself via `[&_[data-slot=navigation-menu-viewport]]`,
 // per the data-slot contract documented in that file.
 const MEGA_MENU_ROOT_CLASSES = cn(
+  // Hidden below lg, where the Sheet hamburger takes over. Without this the
+  // desktop menu rendered alongside the hamburger and its intrinsic width
+  // pushed the layout past the viewport, so phones shrank the whole page to
+  // fit (390px viewport laying out at 482px). Matches the `lg:hidden` on the
+  // hamburger and the `hidden lg:flex` on the Contact CTA.
+  'hidden lg:flex',
   'static',
   '[&>.absolute]:inset-x-0 [&>.absolute]:top-full [&>.absolute]:w-full',
   '[&_[data-slot=navigation-menu-viewport]]:left-0',
@@ -85,12 +91,12 @@ function MegaMenuLinkList({ heading, links }) {
         {links.map((link) => (
           <li key={link.label}>
             <NavigationMenuLink asChild>
-              <a
-                href={link.href}
+              <Link
+                to={link.to}
                 className="block rounded-md px-3 py-2 text-sm text-foreground/80 transition-colors duration-300 hover:bg-accent hover:text-accent-foreground"
               >
                 {link.label}
-              </a>
+              </Link>
             </NavigationMenuLink>
           </li>
         ))}
@@ -114,23 +120,19 @@ function ServicesMegaMenu() {
         </div>
         <div className="flex flex-wrap gap-2">
           {SERVICE_PILLS.map((pill) => (
-            <a
-              key={pill}
-              href="/work"
+            <Link
+              key={pill.label}
+              to={pill.to}
               className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-8 px-3 text-xs')}
             >
-              {pill}
-            </a>
+              {pill.label}
+            </Link>
           ))}
         </div>
       </div>
 
-      <div className="p-6">
-        <MegaMenuLinkList heading="Design" links={DESIGN_LINKS} />
-      </div>
-
-      <div className="p-6">
-        <MegaMenuLinkList heading="Engineering" links={ENGINEERING_LINKS} />
+      <div className="p-6 sm:col-span-2 lg:col-span-2">
+        <MegaMenuLinkList heading="What we build" links={SERVICE_LINKS} />
       </div>
 
       <div className="p-6">
@@ -163,36 +165,27 @@ function MobileServicesGroup() {
       <AccordionItem value="mobile-services">
         <AccordionTrigger className="text-base">Services</AccordionTrigger>
         <AccordionContent>
-          <div className="flex flex-col gap-5">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Design</p>
-              <ul className="mt-2 flex flex-col gap-1">
-                {DESIGN_LINKS.map((link) => (
-                  <li key={link.label}>
-                    <SheetClose asChild>
-                      <a href={link.href} className="block rounded-md px-2 py-1.5 text-sm text-foreground/80">
-                        {link.label}
-                      </a>
-                    </SheetClose>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Engineering</p>
-              <ul className="mt-2 flex flex-col gap-1">
-                {ENGINEERING_LINKS.map((link) => (
-                  <li key={link.label}>
-                    <SheetClose asChild>
-                      <a href={link.href} className="block rounded-md px-2 py-1.5 text-sm text-foreground/80">
-                        {link.label}
-                      </a>
-                    </SheetClose>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <ul className="flex flex-col gap-1">
+            {SERVICE_LINKS.map((link) => (
+              <li key={link.to}>
+                <SheetClose asChild>
+                  <Link
+                    to={link.to}
+                    className="block rounded-md px-2 py-2 text-sm text-foreground/80"
+                  >
+                    {link.label}
+                  </Link>
+                </SheetClose>
+              </li>
+            ))}
+            <li>
+              <SheetClose asChild>
+                <Link to="/services" className="block rounded-md px-2 py-2 text-sm font-medium text-primary">
+                  All services
+                </Link>
+              </SheetClose>
+            </li>
+          </ul>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
@@ -261,6 +254,9 @@ export default function Navigation2() {
         <NavigationMenu className={MEGA_MENU_ROOT_CLASSES}>
           <NavigationMenuList>
             <NavigationMenuItem>
+              <NavLink to="/" label="Home" pathname={pathname} />
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <NavLink to="/work" label="Work" pathname={pathname} />
             </NavigationMenuItem>
             <NavigationMenuItem>
@@ -269,7 +265,7 @@ export default function Navigation2() {
                 <ServicesMegaMenu />
               </NavigationMenuContent>
             </NavigationMenuItem>
-            {PRIMARY_LINKS.filter((link) => link.to !== '/work').map((link) => (
+            {PRIMARY_LINKS.filter((link) => link.to !== '/work' && link.to !== '/').map((link) => (
               <NavigationMenuItem key={link.to}>
                 <NavLink to={link.to} label={link.label} pathname={pathname} />
               </NavigationMenuItem>
