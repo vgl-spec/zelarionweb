@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, Layers, ArrowUpRight } from 'lucide-react';
 import Logo from '../components/Logo';
 import { Button, buttonVariants } from '../components/ui/button';
@@ -29,23 +29,23 @@ import { cn } from '../lib/utils';
 // (not client-side scroll logic) means they also work correctly from any
 // other route, including a hard refresh.
 const PRIMARY_LINKS = [
-  { label: 'Work', href: '/#work' },
-  { label: 'Team', href: '/#team' },
-  { label: 'FAQ', href: '/#faq' },
+  { label: 'Work', to: '/work' },
+  { label: 'Team', to: '/team' },
+  { label: 'FAQ', to: '/faq' },
 ];
 
 const DESIGN_LINKS = [
-  { label: 'Product Design', href: '/#work' },
-  { label: 'Brand Identity', href: '/#work' },
-  { label: 'Design Systems', href: '/#work' },
-  { label: 'Motion & Interaction', href: '/#work' },
+  { label: 'Product Design', href: '/work' },
+  { label: 'Brand Identity', href: '/work' },
+  { label: 'Design Systems', href: '/work' },
+  { label: 'Motion & Interaction', href: '/work' },
 ];
 
 const ENGINEERING_LINKS = [
-  { label: 'Frontend Engineering', href: '/#work' },
-  { label: 'Backend & APIs', href: '/#work' },
-  { label: 'Cloud & DevOps', href: '/#work' },
-  { label: 'QA & Testing', href: '/#work' },
+  { label: 'Frontend Engineering', href: '/work' },
+  { label: 'Backend & APIs', href: '/work' },
+  { label: 'Cloud & DevOps', href: '/work' },
+  { label: 'QA & Testing', href: '/work' },
 ];
 
 const SERVICE_PILLS = ['Web', 'Mobile', 'Brand'];
@@ -116,7 +116,7 @@ function ServicesMegaMenu() {
           {SERVICE_PILLS.map((pill) => (
             <a
               key={pill}
-              href="/#work"
+              href="/work"
               className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-8 px-3 text-xs')}
             >
               {pill}
@@ -199,18 +199,69 @@ function MobileServicesGroup() {
   );
 }
 
-export default function Navigation2() {
+
+/**
+ * Marks the current route so a visitor can tell where they are. `aria-current` carries
+ * the state for assistive tech; the underline carries it visually, because colour alone
+ * is not an acceptable sole indicator.
+ */
+function NavLink({ to, label, pathname }) {
+  const isCurrent = pathname === to;
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+      <Link
+        to={to}
+        aria-current={isCurrent ? 'page' : undefined}
+        className={cn(
+          'relative transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]',
+          isCurrent ? 'text-foreground' : 'text-foreground/70 hover:text-foreground',
+          "after:absolute after:inset-x-2 after:-bottom-0.5 after:h-px after:origin-left after:bg-aurora-teal after:transition-transform after:duration-200 after:ease-[cubic-bezier(0.4,0,0.2,1)] after:content-['']",
+          isCurrent ? 'after:scale-x-100' : 'after:scale-x-0 hover:after:scale-x-100'
+        )}
+      >
+        {label}
+      </Link>
+    </NavigationMenuLink>
+  );
+}
+
+export default function Navigation2() {
+  const { pathname } = useLocation();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return; // coalesce to one read per frame rather than per scroll event
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setIsScrolled(window.scrollY > 8);
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return (
+    <header
+      className={cn(
+        'sticky top-0 z-40 w-full backdrop-blur transition-[background-color,border-color] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+        isScrolled
+          ? 'border-b border-border bg-background/90 supports-[backdrop-filter]:bg-background/75'
+          : 'border-b border-transparent bg-background/40'
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Logo />
 
         <NavigationMenu className={MEGA_MENU_ROOT_CLASSES}>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="/#work">Work</a>
-              </NavigationMenuLink>
+              <NavLink to="/work" label="Work" pathname={pathname} />
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuTrigger>Services</NavigationMenuTrigger>
@@ -218,16 +269,11 @@ export default function Navigation2() {
                 <ServicesMegaMenu />
               </NavigationMenuContent>
             </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="/#team">Team</a>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="/#faq">FAQ</a>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            {PRIMARY_LINKS.filter((link) => link.to !== '/work').map((link) => (
+              <NavigationMenuItem key={link.to}>
+                <NavLink to={link.to} label={link.label} pathname={pathname} />
+              </NavigationMenuItem>
+            ))}
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -254,12 +300,12 @@ export default function Navigation2() {
             <nav className="flex flex-col gap-1">
               {PRIMARY_LINKS.map((link) => (
                 <SheetClose asChild key={link.label}>
-                  <a
-                    href={link.href}
-                    className="rounded-md px-3 py-2.5 text-base text-foreground transition-colors duration-300 hover:bg-accent"
+                  <Link
+                    to={link.to}
+                    className="min-h-[44px] rounded-md px-3 py-2.5 text-base text-foreground transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-accent"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </SheetClose>
               ))}
               <MobileServicesGroup />

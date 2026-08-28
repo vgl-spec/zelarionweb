@@ -44,9 +44,7 @@ export default function ExpandableProfileCard({
   };
 
   return (
-    <motion.div
-      layout
-      transition={{ duration: reduced ? 0 : 0.4, ease: EASE_EXPENSIVE }}
+    <div
       className={cn('overflow-hidden rounded-xl border border-border bg-card', className)}
       data-testid="expandable-profile-card"
     >
@@ -79,13 +77,21 @@ export default function ExpandableProfileCard({
             id={contentId}
             role="region"
             aria-labelledby={triggerId}
-            initial={reduced ? false : { height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={reduced ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
-            transition={{ duration: reduced ? 0 : 0.4, ease: EASE_EXPENSIVE }}
+            initial={reduced ? false : { gridTemplateRows: '0fr', opacity: 0 }}
+            animate={{ gridTemplateRows: '1fr', opacity: 1 }}
+            exit={
+              reduced
+                ? { gridTemplateRows: '1fr', opacity: 1 }
+                : { gridTemplateRows: '0fr', opacity: 0 }
+            }
+            transition={{
+              gridTemplateRows: { duration: reduced ? 0 : 0.32, ease: EASE_EXPENSIVE },
+              opacity: { duration: reduced ? 0 : 0.22, ease: EASE_EXPENSIVE },
+            }}
+            style={{ display: 'grid' }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border px-6 pb-6 pt-5">
+            <div className="min-h-0 overflow-hidden border-t border-border px-6 pb-6 pt-5">
               {bio && <p className="text-sm leading-relaxed text-muted-foreground">{bio}</p>}
 
               {stats.length > 0 && (
@@ -119,6 +125,6 @@ export default function ExpandableProfileCard({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

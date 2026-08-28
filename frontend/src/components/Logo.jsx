@@ -11,7 +11,7 @@ export default function Logo({ className, showWord = true }) {
       aria-label="Zelarion home"
     >
       <img
-        src="/assets/logo-mark.png"
+        src="/assets/logo-mark-192.png"
         alt="Zelarion"
         width="30"
         height="30"
