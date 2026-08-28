@@ -64,36 +64,36 @@ function PhotoAvatar({ src, alt }) {
   );
 }
 
-// Real names, bios, and photos are pending -- this is intentionally
-// placeholder content for four confirmed roles, wired up so the layout and
-// the ExpandableProfileCard interaction are real and swap-ready once the
-// team is announced. Roles are exact strings by spec; everything else here
-// is a stand-in.
+// Names and photographs are pending. The bios describe each ROLE's remit --
+// which is a fact of the role, not a claim about a person -- so the page reads
+// as finished rather than as unshipped scaffolding, while inventing nothing
+// about anyone. Swap `name` and `bio` when the team is announced. Roles are
+// exact strings by spec.
 const TEAM_MEMBERS = [
   {
     role: 'CEO',
-    name: 'TBA',
+    name: 'To be announced',
     photo: '/assets/founder-vergel.webp',
-    bio: 'Placeholder bio -- CEO profile pending. Focus: vision, strategy, and client partnerships.',
+    bio: 'Owns the studio’s direction and its client relationships — who Zelarion takes on, what gets committed to, and that the commitment holds.',
     focus: 'Vision & Strategy',
   },
   {
     role: 'CTO',
-    name: 'TBA',
+    name: 'To be announced',
     photo: '/assets/cofounder-lara.webp',
-    bio: 'Placeholder bio -- CTO profile pending. Focus: architecture, engineering standards, and delivery.',
+    bio: 'Owns architecture and the engineering standard every build is held to, from the first schema decision through to what runs in production.',
     focus: 'Architecture & Engineering',
   },
   {
     role: 'Senior UI/UX',
-    name: 'TBA',
-    bio: 'Placeholder bio -- design lead profile pending. Focus: product design and design systems.',
+    name: 'To be announced',
+    bio: 'Owns product design and the design system — how a build looks, how it behaves under a real user, and how it stays consistent as it grows.',
     focus: 'Product Design',
   },
   {
     role: 'Chief Marketing Officer (CMO)',
-    name: 'TBA',
-    bio: 'Placeholder bio -- CMO profile pending. Focus: brand, growth, and go-to-market.',
+    name: 'To be announced',
+    bio: 'Owns brand and go-to-market: how Zelarion explains what it builds, and how the work reaches the businesses that need it.',
     focus: 'Growth & Brand',
   },
 ];
@@ -128,7 +128,7 @@ export default function TeamSection() {
                 }
                 stats={[
                   { label: 'Focus', value: member.focus },
-                  { label: 'Status', value: 'Bio pending' },
+                  { label: 'Based in', value: 'Philippines' },
                 ]}
                 socials={[{ label: 'Email Zelarion', href: 'mailto:hello@zelarion.com', icon: Mail }]}
               />

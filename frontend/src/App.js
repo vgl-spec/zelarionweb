@@ -5,6 +5,7 @@ import SmoothScroll from './components/SmoothScroll';
 import Navigation2 from './sections/Navigation2';
 import HeroStudio from './sections/HeroStudio';
 import CredibilityBar from './sections/CredibilityBar';
+import ScrollExpandShowcase from './sections/ScrollExpandShowcase';
 import WorkShowcase from './sections/WorkShowcase';
 import ServicesSection from './sections/ServicesSection';
 import ProcessSection from './sections/ProcessSection';
@@ -54,6 +55,7 @@ function HomePage() {
     <>
       <HeroStudio />
       <CredibilityBar />
+      <ScrollExpandShowcase />
       {/* The header and footer link to these three anchors, so the ids are load-bearing. */}
       <div id="work">
         <WorkShowcase limit={3} showViewAll />

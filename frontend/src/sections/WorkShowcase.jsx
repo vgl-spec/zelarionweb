@@ -1,47 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ArrowUpRight,
-  Scale,
-  Network,
-  Layers,
-  Flower2,
-  TrendingUp,
-  Workflow,
-} from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import Reveal, { Eyebrow } from '../components/Reveal';
 import { PROJECTS } from '../data/projects';
 import { cn } from '../lib/utils';
 
-// No screenshots of client sites exist, and hotlinking their assets at runtime is not an
-// option, so each project gets a generated mark instead: a sector glyph over a wash keyed
-// to the project. The six read as a family while staying individually recognisable.
-const GLYPHS = {
-  scales: Scale,
-  hub: Network,
-  stack: Layers,
-  bloom: Flower2,
-  ascend: TrendingUp,
-  flow: Workflow,
-};
-
-function ProjectCard({ project, featured }) {
-  const Glyph = GLYPHS[project.glyph] || Layers;
-
+function ProjectCard({ project }) {
   return (
-    <a
-      href={project.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`${project.name} — open the live site in a new tab`}
+    <figure
       className={cn(
         'group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface',
-        // Lift and hairline shift are the whole hover language: transform + colour only,
-        // 200ms on the UI curve. Nothing here triggers layout.
-        'transition-[transform,border-color] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]',
-        'hover:-translate-y-1 hover:border-aurora-teal/40',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-teal focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
-        featured && 'lg:col-span-2'
+        // The border warm is the whole hover language here: colour only, 200ms on the UI
+        // curve. The screenshot's own scale transform is set separately below.
+        'transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]',
+        'hover:border-aurora-teal/40'
       )}
     >
       <span
@@ -49,65 +21,50 @@ function ProjectCard({ project, featured }) {
         className="absolute inset-x-0 top-0 h-px bg-line transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:bg-aurora-teal"
       />
 
+      {/* Browser chrome — reads unambiguously as "a picture of a website", not a stock photo. */}
       <div
         aria-hidden="true"
-        className={cn(
-          'relative flex items-center justify-between overflow-hidden bg-gradient-to-br px-7 py-8',
-          project.wash,
-          featured ? 'min-h-[190px]' : 'min-h-[150px]'
-        )}
+        className="flex h-[34px] shrink-0 items-center gap-3 border-b border-line px-4"
       >
-        <span
-          className={cn(
-            'font-display font-bold leading-none tracking-tightest text-text/90',
-            featured ? 'text-6xl sm:text-7xl' : 'text-5xl'
-          )}
-        >
-          {project.initials}
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-text-dim/30" />
+          <span className="h-2 w-2 rounded-full bg-text-dim/30" />
+          <span className="h-2 w-2 rounded-full bg-text-dim/30" />
         </span>
-        <Glyph
-          className={cn(
-            'shrink-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110',
-            project.glyphColor,
-            featured ? 'h-14 w-14' : 'h-10 w-10'
-          )}
-          strokeWidth={1.25}
+        <span className="font-mono text-[11px] text-text-dim">{project.domain}</span>
+      </div>
+
+      <div className="aspect-[16/9] overflow-hidden">
+        <img
+          src={project.preview}
+          alt={`Landing page of the ${project.name} website`}
+          loading="lazy"
+          decoding="async"
+          width="1200"
+          height="675"
+          className="h-full w-full object-cover object-top transition-transform duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-[1.02]"
         />
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-7">
-        <div className="flex items-baseline justify-between gap-4">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-dim">
-            {project.sector}
-          </span>
-          <span className="font-mono text-[11px] text-text-dim">{project.domain}</span>
-        </div>
+      <figcaption className="flex flex-1 flex-col gap-3 p-7">
+        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-dim">
+          {project.sector}
+        </span>
 
         <h3 className="font-display text-xl font-bold tracking-tight text-text sm:text-2xl">
           {project.name}
         </h3>
 
-        <p
-          className={cn(
-            'text-sm leading-relaxed text-text-dim',
-            !featured && 'line-clamp-4'
-          )}
-        >
-          {project.summary}
-        </p>
-
-        <span className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-medium text-text">
-          Visit the live site
-          <ArrowUpRight className="h-4 w-4 transition-transform duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </span>
-      </div>
-    </a>
+        <p className="line-clamp-4 text-sm leading-relaxed text-text-dim">{project.summary}</p>
+      </figcaption>
+    </figure>
   );
 }
 
 /**
  * The portfolio grid. `limit` lets the home page show a subset while /work shows all six
- * from the same data source.
+ * from the same data source. Cards are screenshot previews, not links — there is no
+ * click-through to the client sites.
  */
 export default function WorkShowcase({ limit, showViewAll = false, className }) {
   const projects = limit ? PROJECTS.slice(0, limit) : PROJECTS;
@@ -121,20 +78,15 @@ export default function WorkShowcase({ limit, showViewAll = false, className }) 
             Systems running in production.
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-text-dim">
-            Every site below belongs to a real business and is live today. Open any of them
-            and judge the work directly.
+            Every site below belongs to a real business and is live today. Each preview is a
+            real screenshot of its landing page, captured from the site as it ships.
           </p>
         </Reveal>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project, i) => (
-            <Reveal
-              key={project.id}
-              y={48}
-              delay={i * 0.08}
-              className={cn('flex', i === 0 && 'lg:col-span-2')}
-            >
-              <ProjectCard project={project} featured={i === 0} />
+            <Reveal key={project.id} y={48} delay={i * 0.08} className="flex">
+              <ProjectCard project={project} />
             </Reveal>
           ))}
         </div>

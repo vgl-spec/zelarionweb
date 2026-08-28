@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { setScroll } from '../lib/scrollStore';
+import { registerScrollDriver, setScroll } from '../lib/scrollStore';
 import { prefersReducedMotion } from '../lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,7 +16,9 @@ export default function SmoothScroll() {
     const updateStore = () => {
       const docHeight = document.body.scrollHeight - window.innerHeight;
       const progress = docHeight > 0 ? window.scrollY / docHeight : 0;
-      setScroll(progress, 0);
+      const viewportsScrolled =
+        window.innerHeight > 0 ? window.scrollY / window.innerHeight : 0;
+      setScroll(progress, 0, viewportsScrolled);
     };
 
     if (reduced) {
@@ -37,8 +39,13 @@ export default function SmoothScroll() {
       ScrollTrigger.update();
       const docHeight = document.body.scrollHeight - window.innerHeight;
       const progress = docHeight > 0 ? e.scroll / docHeight : 0;
-      setScroll(progress, e.velocity || 0);
+      const viewportsScrolled =
+        window.innerHeight > 0 ? e.scroll / window.innerHeight : 0;
+      setScroll(progress, e.velocity || 0, viewportsScrolled);
     });
+
+    // Modals pause the driver through this handle; see lockScroll in scrollStore.
+    const unregisterDriver = registerScrollDriver(lenis);
 
     const raf = (time) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
@@ -52,6 +59,7 @@ export default function SmoothScroll() {
     return () => {
       clearTimeout(t);
       window.removeEventListener('load', refresh);
+      unregisterDriver();
       gsap.ticker.remove(raf);
       lenis.destroy();
     };

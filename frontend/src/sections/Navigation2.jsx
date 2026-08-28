@@ -62,6 +62,12 @@ const SERVICE_PILLS = ['Web', 'Mobile', 'Brand'];
 // the viewport itself via `[&_[data-slot=navigation-menu-viewport]]`,
 // per the data-slot contract documented in that file.
 const MEGA_MENU_ROOT_CLASSES = cn(
+  // Hidden below lg, where the Sheet hamburger takes over. Without this the
+  // desktop menu rendered alongside the hamburger and its intrinsic width
+  // pushed the layout past the viewport, so phones shrank the whole page to
+  // fit (390px viewport laying out at 482px). Matches the `lg:hidden` on the
+  // hamburger and the `hidden lg:flex` on the Contact CTA.
+  'hidden lg:flex',
   'static',
   '[&>.absolute]:inset-x-0 [&>.absolute]:top-full [&>.absolute]:w-full',
   '[&_[data-slot=navigation-menu-viewport]]:left-0',

@@ -9,6 +9,94 @@
 
 ## 2026-08-28
 
+- **`body { overflow: hidden }` does NOT lock the page when Lenis is driving the scroll.**
+  Lenis runs its own rAF loop and calls `window.scrollTo`, so it sails straight through the
+  overflow lock: an open profile dialog scrolled the page 593px behind itself. A browser test
+  caught it; reading the code did not, and the builder had flagged it as unverifiable. Fix:
+  `registerScrollDriver(lenis)` in `SmoothScroll`, and `lockScroll()`/`unlockScroll()` from
+  `scrollStore` in the modal. **Keep the body-overflow lock too** — under
+  `prefers-reduced-motion` there is no Lenis instance and overflow is the only lever.
+  Neither mechanism alone holds the page still.
+
+- **A viewport that lays out wider than itself is the signature of a mobile overflow bug.**
+  `window.innerWidth` came back as **482 on a 390px viewport**: the phone had shrink-to-fit
+  zoomed the whole page out. Cause: `Navigation2`'s desktop `NavigationMenu` had no
+  responsive hiding, so it rendered *next to* the `lg:hidden` hamburger and its intrinsic
+  width pushed the layout out. Shipped live and invisible to every desktop check. **Assert
+  `document.documentElement.scrollWidth === window.innerWidth === 390` on every route** — and
+  when hunting the culprit, ignore elements inside `overflow-hidden` parents (the footer
+  marquee is legitimately 4435px wide), because they never contribute to `scrollWidth`.
+
+- **Never put overlay text over a screenshot of a website.** The scroll-expand section used
+  the full Kaibo landing page as its full-bleed media, so that site's own headline sat under
+  Zelarion's headline and both became unreadable. The original component used an abstract
+  photo for exactly this reason. Fix: crop to a region of the same screenshot with no type in
+  it — still genuinely the client's build, but it reads as atmosphere.
+
+- **When the font size and the animation distance both scale in `vw`, their ratio is constant
+  -- so "it fits on desktop" proves nothing.** The split headline occupies ~84% of the line at
+  every width in the `5.5vw` regime, leaving ~8vw of slack per side; a 220px travel that
+  looked perfect at 1440 cut the words mid-letter at 390. Cap the travel below the slack
+  (7vw) and stack the halves below `sm`, where the `2rem` font floor eats the rest of the
+  room. Assert the rendered `getBoundingClientRect()` of the moving text stays inside
+  `0..innerWidth` at several widths — the mid-animation frame is the one that clips.
+
+- **`DISABLE_ESLINT_PLUGIN=true CI=true npm run build` is how you isolate a compile error from
+  a lint error here.** One builder's bad `eslint-disable` comment aborts the whole CRA build at
+  the eslint step, before any other file is even reached, so parallel builders all report "the
+  build is red" and none of them can prove their own work compiles. There is no discoverable
+  `.eslintrc` to lint a single file against either -- CRA embeds `react-app` internally, so the
+  ESLint Node API just errors "No ESLint configuration found".
+
+- **A "definition of done" that contradicts the instructions above it wastes a whole agent run.**
+  A brief told a builder to keep `domain: 'palattaolaw.vercel.app'` as caption text, then set a
+  done-check of `grep -rn "palattaolaw\|..." frontend/src` returning nothing. Mutually
+  exclusive as written. **Write the acceptance grep against the thing actually being removed**
+  (`grep -n "url:"`, `grep -n "href"`), never against a substring that legitimate content also
+  contains.
+
+- **Unmounting a component to save resources replays its entrance animation on remount.**
+  `TravellingCore` now tears down its WebGL canvas past the hero and remounts it on the way
+  back up. `Core` seeded its damping ref from a hardcoded `REST` constant, so every remount --
+  which only happens deep in the already-faded zone -- would have flashed the crystal back to
+  full opacity and faded it out a second time. **Any ref holding animation state must be
+  seeded from live state (`settle(scrollStore.viewportsScrolled)`), never from the at-rest
+  constant.** Mount is not the same event as page load. Pair every unmount-for-perf gate with
+  hysteresis too (unmount 1.4 / remount 1.1) or a scroll parked on the boundary thrashes the
+  context every frame.
+
+- **`// eslint-disable-next-line react-hooks/exhaustive-deps` FAILS the build in this repo.**
+  CRA's eslint config here does not register that rule, so the disable comment itself errors
+  with "Definition for rule 'react-hooks/exhaustive-deps' was not found" -- and `CI=true`
+  promotes it to a hard failure. The disable comment is the defect, not the dependency array.
+  Restructure the effect instead of silencing it.
+
+- **A screenshot script that exits 0 proves nothing about what is in the frame.** Capturing
+  the six client landing pages, two of six were unusable and both looked like successes:
+  `yorinternational.net` was caught mid-preloader at "98% INITIALIZING", and `nogatu.store`
+  had a cookie banner across the fold. Only opening the PNGs found it. **Look at every
+  captured frame before encoding it.** Third-party sites need: a long fixed wait after
+  `load` (a percentage preloader is not covered by `networkidle`), a scroll-down-and-back
+  to trip lazy hero imagery, and an explicit consent-banner dismissal (`getByRole('button',
+  {name: 'Necessary only'})`, falling back through 'Accept all' / 'Reject').
+
+- **Some heroes are scroll-driven and have no "correct" frame.** `yorinternational.net`
+  renders a marquee that bleeds off both edges, so at `scrollY: 0` it reads as the fragment
+  "VEMENT". Four time-spaced captures were byte-identical because the animation is driven by
+  scroll position, not time — sampling more frames cannot fix what is not animating. Scroll
+  offsets change it but expose worse framing. That fragment IS the site; ship it.
+
+- **Global `@playwright/cli` does not put `playwright` on the resolvable path.** `npm root -g`
+  shows only `@playwright/cli`; the real package is nested at
+  `@playwright/cli/node_modules/playwright`, and ESM ignores `NODE_PATH`. From the scratchpad,
+  `require()` that absolute path from a `.cjs` file. `@playwright/test` is not installed here.
+
+- **Anything keyed to whole-document scroll progress silently re-times when a section is
+  added.** `TravellingCore` interpolated eight keyframes over `scrollStore.progress`
+  (`scrollY / docHeight`), so restoring the 300vh `ScrollExpandShowcase` would have stretched
+  every keyframe without any error. Scroll animations that belong to one section must key off
+  **viewports scrolled** (`scrollY / innerHeight`), which is independent of page length.
+
 - **Check the container against the codec: `aurora.webm` was H.264, not VP9.** A 1920x1080
   60fps encode of a soft gradient loop shipped at 17 MB. Re-encoded to real VP9 at 720p/30
   it is 35 KB -- a 99.8% cut with no visible difference, because a blurred gradient has
