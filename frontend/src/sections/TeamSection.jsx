@@ -47,6 +47,23 @@ function InitialsAvatar({ name, seed }) {
   );
 }
 
+// Portrait tile for the two roles with a real photograph on file. Sized 480px for a
+// 56px slot so it stays crisp at 3x; lazy + explicit dimensions so it never shifts
+// layout while loading.
+function PhotoAvatar({ src, alt }) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      width="56"
+      height="56"
+      loading="lazy"
+      decoding="async"
+      className="h-14 w-14 shrink-0 rounded-full object-cover ring-1 ring-line"
+    />
+  );
+}
+
 // Real names, bios, and photos are pending -- this is intentionally
 // placeholder content for four confirmed roles, wired up so the layout and
 // the ExpandableProfileCard interaction are real and swap-ready once the
@@ -56,12 +73,14 @@ const TEAM_MEMBERS = [
   {
     role: 'CEO',
     name: 'TBA',
+    photo: '/assets/founder-vergel.webp',
     bio: 'Placeholder bio -- CEO profile pending. Focus: vision, strategy, and client partnerships.',
     focus: 'Vision & Strategy',
   },
   {
     role: 'CTO',
     name: 'TBA',
+    photo: '/assets/cofounder-lara.webp',
     bio: 'Placeholder bio -- CTO profile pending. Focus: architecture, engineering standards, and delivery.',
     focus: 'Architecture & Engineering',
   },
@@ -100,7 +119,13 @@ export default function TeamSection() {
                 name={member.name}
                 role={member.role}
                 bio={member.bio}
-                avatar={<InitialsAvatar name={member.name} seed={member.role} />}
+                avatar={
+                  member.photo ? (
+                    <PhotoAvatar src={member.photo} alt={`Zelarion ${member.role}`} />
+                  ) : (
+                    <InitialsAvatar name={member.name} seed={member.role} />
+                  )
+                }
                 stats={[
                   { label: 'Focus', value: member.focus },
                   { label: 'Status', value: 'Bio pending' },

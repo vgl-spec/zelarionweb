@@ -91,6 +91,21 @@ export const zelarionFaqCategories = [
           'Both. Early-stage teams usually need an MVP built fast and cheaply enough to iterate on; established teams usually need a specific feature, redesign, or a codebase taken over cleanly. We scope each differently.',
       },
       {
+        question: 'Who owns the code and the accounts?',
+        answer:
+          'You do. The repository, the domain, the hosting and the database accounts are yours and stay in your name -- we work inside them rather than holding them hostage. Handover is part of delivery, not an upsell.',
+      },
+      {
+        question: 'How does pricing work?',
+        answer:
+          'A fixed price against an agreed scope, quoted after a short discovery conversation. We do not quote before understanding what the system has to do, because a number produced without that is a guess that one of us pays for later.',
+      },
+      {
+        question: 'You are based in the Philippines. How does that work if we are not?',
+        answer:
+          'We work asynchronously by default and keep a written trail, so progress does not depend on being awake at the same time. We hold overlapping hours for calls and agree those before the project starts.',
+      },
+      {
         question: "What's your typical turnaround for an MVP?",
         answer:
           'Weeks, not months, for a focused first version -- the exact number depends on scope, but we agree on a timeline before any code is written, not after.',

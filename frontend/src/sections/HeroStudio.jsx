@@ -63,13 +63,17 @@ export default function HeroStudio() {
         <div className="aurora-css absolute inset-0" aria-hidden="true" />
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-80 mix-blend-screen"
-          src="/assets/aurora.webm"
           autoPlay
           loop
           muted
           playsInline
+          preload="metadata"
           aria-hidden="true"
-        />
+        >
+          <source src="/assets/aurora-720.webm" type="video/webm" />
+          {/* Safari only gained VP9-in-WebM recently; the H.264 file is the fallback. */}
+          <source src="/assets/aurora-720.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-b from-ink/10 via-ink/35 to-ink" />
         <div className="absolute inset-0 bg-[radial-gradient(120%_75%_at_50%_-5%,transparent_42%,rgba(5,7,10,0.55)_80%,#05070A_100%)]" />
       </div>

@@ -9,6 +9,29 @@
 
 ## 2026-08-28
 
+- **Check the container against the codec: `aurora.webm` was H.264, not VP9.** A 1920x1080
+  60fps encode of a soft gradient loop shipped at 17 MB. Re-encoded to real VP9 at 720p/30
+  it is 35 KB -- a 99.8% cut with no visible difference, because a blurred gradient has
+  almost no high-frequency detail to encode. The whole `public/assets/` folder went from
+  21.7 MB to 236 KB. **Everything in `public/` is deployed, so an unused 1.4 MB master
+  sitting next to its optimised copy is shipped to every visitor.** Verify a suspiciously
+  large saving by extracting a frame rather than trusting the byte count.
+
+- **A 1024x1024 PNG rendered into a 30px slot is the easiest perf win in any repo.** The
+  logo was 1.4 MB for a 30px mark. Resized to 192px it is 42 KB and still crisp at 6x.
+
+- **Animating `height: auto` in framer-motion measures a pixel height every frame, and
+  `layout` on the parent reflows its whole grid with it.** That was the stutter in
+  `ExpandableProfileCard`. Animating a single grid track instead (`grid-template-rows:
+  0fr -> 1fr` on an `overflow: hidden` wrapper with a `min-h-0` child) needs no measurement.
+  Exit is set shorter than enter so collapsing feels responsive.
+
+- **Building pages does not make them reachable.** `/work`, `/services`, `/team` and `/faq`
+  shipped while the nav still pointed at `/#work` hash anchors, so nothing in the UI linked
+  to any of them. **After adding a route, grep the nav and footer for a link to it** --
+  otherwise it exists only for whoever types the URL.
+
+
 - **A sibling rendered *after* `<main>` still loses to it when `<main>` has `z-10` and the
   sibling has none.** `CinematicFooter`'s wrapper was `relative` with no z-index, so it
   computed to `auto` and `<main class="relative z-10">` painted over the `lg:fixed` footer.
