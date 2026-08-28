@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Mail, MapPin, ArrowUp } from 'lucide-react';
+import { ArrowRight, Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
 import { cn, prefersReducedMotion } from '../lib/utils';
 
 // CRA has no SSR, so this guard never actually skips anything at runtime -- kept
@@ -21,11 +21,11 @@ const SITE = {
   contact: {
     // TODO(zelarion): confirm this mailbox is monitored before launch.
     email: 'hello@zelarion.com',
-    // No phone number here on purpose. This carried '+1 (555) 010-0000' -- a
-    // reserved fictional US number -- behind a live `tel:` link on a lead
-    // generation page. A prospect who taps a dead number is a lost lead and a
-    // credibility hit, which is strictly worse than offering one fewer channel.
-    // Restore a "Call us" pill only once there is a real, answered number.
+    // Two forms on purpose: `phoneDial` is E.164 with no spaces or punctuation,
+    // which is what a `tel:` href must carry for every dialer to parse it, while
+    // `phone` is the grouped form a human reads. Keep them in sync.
+    phone: '+63 994 332 8595',
+    phoneDial: '+639943328595',
     addressShort: 'Philippines — working with clients internationally',
   },
 };
@@ -434,6 +434,16 @@ export default function CinematicFooter() {
                 >
                   <Mail className="cf-text-dim size-5 transition-colors group-hover:text-[var(--foreground)]" />
                   Email Us
+                </MagneticButton>
+
+                <MagneticButton
+                  as="a"
+                  href={`tel:${SITE.contact.phoneDial}`}
+                  aria-label={`Call Zelarion on ${SITE.contact.phone}`}
+                  className="footer-glass-pill group flex items-center gap-3 rounded-full px-9 py-5 text-sm font-bold md:text-base"
+                >
+                  <Phone className="cf-text-dim size-5 transition-colors group-hover:text-[var(--foreground)]" />
+                  Call Us
                 </MagneticButton>
 
               </div>
