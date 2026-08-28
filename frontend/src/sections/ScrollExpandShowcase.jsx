@@ -2,12 +2,12 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
 import { prefersReducedMotion } from '../lib/utils';
 
-// A detail crop from the Kaibo PH build rather than its landing page: the full
-// screenshot carries that site's own headline, and stacking Zelarion's overlay
-// copy on top of somebody else's headline made both unreadable. This region has
-// no type in it, so it reads as atmosphere and the overlay stays legible.
-const MEDIA = '/assets/showcase-build.webp';
-const MEDIA_ALT = 'Detail from the Kaibo PH industrial-supply site built by Zelarion';
+// An abstract 3D render (white wireframe cubes connected in a lattice), not a
+// screenshot of any client build. It carries no readable text of its own, so
+// Zelarion's overlay headline stays legible on top of it instead of competing
+// with someone else's copy the way a real site screenshot would.
+const MEDIA = '/assets/showcase-lattice.webp';
+const MEDIA_ALT = 'Abstract 3D render of white wireframe cubes connected in a lattice';
 
 // Single source for the copy: the animated and reduced-motion trees render the
 // same words, and a wording change must not have to be made in two places.
@@ -15,11 +15,29 @@ const EYEBROW = 'What a Zelarion build commits to';
 const TITLE_LEAD = 'Built to last.';
 const TITLE_TRAIL = 'Not to demo.';
 const SCROLL_HINT = 'Scroll to expand';
-const BODY_HEADING = 'The same standard on every build.';
+const BODY_HEADING = "It works. It's yours.";
+// The strongest claim (ownership) gets the accent treatment wherever it
+// appears in BODY, via renderBodyLine() below. Kept as its own constant so
+// the highlighted phrase can't drift out of sync with the sentence it lives in.
+const BODY_ACCENT = 'Yours, permanently.';
 const BODY = [
-  'Real content structured for the business, not filler text and stock photos. Layouts that hold from a 360px phone up to a wide desktop, checked at the sizes people actually use, not just the one in the mockup.',
-  'Forms validated on the server, not just in the browser, so a bad request never becomes bad data. Navigation that works from a keyboard with a focus state you can see. And when the build ships, the client owns the code and the accounts it runs on — not us.',
+  'Real content, not filler. Built for every screen your customers hold.',
+  'Protected against bad data. Usable by everyone, however they browse.',
+  `The code. The domain. Every account. ${BODY_ACCENT}`,
 ];
+
+// Wraps BODY_ACCENT in the gradient treatment already used in the hero,
+// without hardcoding a second copy of the sentence it's embedded in.
+function renderBodyLine(line) {
+  if (!line.includes(BODY_ACCENT)) return line;
+  const [before] = line.split(BODY_ACCENT);
+  return (
+    <>
+      {before}
+      <span className="text-gradient">{BODY_ACCENT}</span>
+    </>
+  );
+}
 
 // Reduced-motion viewers get the same words laid out as an ordinary block. The
 // choreography is what gets turned off, not the content — a 300vh sticky
@@ -39,13 +57,13 @@ function StaticShowcase() {
           <img src={MEDIA} alt={MEDIA_ALT} className="h-full w-full object-cover" decoding="async" />
         </div>
 
-        <div className="mt-10 max-w-2xl">
-          <h3 className="font-display text-[clamp(1.5rem,3.5vw,2.25rem)] font-bold leading-tight tracking-tightest text-text">
+        <div className="mt-10 max-w-3xl">
+          <h3 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] font-bold leading-[1.05] tracking-tightest text-text">
             {BODY_HEADING}
           </h3>
           {BODY.map((paragraph) => (
-            <p key={paragraph} className="mt-6 text-lg leading-relaxed text-text-dim">
-              {paragraph}
+            <p key={paragraph} className="mt-5 text-xl leading-relaxed text-text-dim md:text-2xl">
+              {renderBodyLine(paragraph)}
             </p>
           ))}
         </div>
@@ -140,13 +158,13 @@ export default function ScrollExpandShowcase() {
           style={{ opacity: contentOpacity, y: contentY }}
           className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-content flex-col justify-center px-6"
         >
-          <div className="max-w-2xl">
-            <h3 className="font-display text-[clamp(1.75rem,4vw,3rem)] font-bold leading-tight tracking-tightest text-text">
+          <div className="max-w-3xl">
+            <h3 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] font-bold leading-[1.05] tracking-tightest text-text">
               {BODY_HEADING}
             </h3>
             {BODY.map((paragraph) => (
-              <p key={paragraph} className="mt-6 text-lg leading-relaxed text-text-dim">
-                {paragraph}
+              <p key={paragraph} className="mt-5 text-xl leading-relaxed text-text-dim md:text-2xl">
+                {renderBodyLine(paragraph)}
               </p>
             ))}
           </div>

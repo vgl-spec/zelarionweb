@@ -517,7 +517,7 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                       <SelectContent>
                         {CURRENCIES.map(({ code, name }) => (
                           <SelectItem key={code} value={code}>
-                            {code} — {name}
+                            {code} · {name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -655,7 +655,7 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                     </li>
                     <li className="flex gap-2.5">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-                      Design and build under one roof -- no handoff gaps.
+                      Design and build under one roof. No handoff gaps.
                     </li>
                     <li className="flex gap-2.5">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />

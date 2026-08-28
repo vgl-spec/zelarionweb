@@ -12,21 +12,21 @@ const SERVICES = [
     icon: Globe,
     title: 'Websites that make the case for you',
     description:
-      "For a business or a professional practice, the website is often the first real interaction a client has with you. We build sites that state clearly what the business does and make it easy to get in touch — the kind of site a nine-practice-area law firm or an industrial supplier can point a new client to with confidence.",
+      "For a business or a professional practice, the website is often the first real interaction a client has with you. We build sites that state clearly what the business does and make it easy to get in touch. It's the kind of site a nine-practice-area law firm or an industrial supplier can point a new client to with confidence.",
   },
   {
     id: 'commerce',
     icon: ShoppingCart,
     title: 'Commerce and distribution systems',
     description:
-      "For businesses that sell physical goods — packaging materials, industrial supplies, retail products — we build the systems that take an order from browse to fulfilment, so the business isn't running its catalogue and stock out of spreadsheets and group chats.",
+      "For businesses that sell physical goods, from packaging materials to industrial supplies to retail products, we build the systems that take an order from browse to fulfilment. The business stops running its catalogue and stock out of spreadsheets and group chats.",
   },
   {
     id: 'internal-platforms',
     icon: Boxes,
     title: 'Internal platforms and member systems',
     description:
-      "Some of what a business needs never faces the public: inventory tracking, procurement workflows, or a system for managing a network of members. We've built these for a health, wealth and wellness organisation and for a network platform built around its members — software that runs the operation, not just the storefront.",
+      "Some of what a business needs never faces the public: inventory tracking, procurement workflows, or a system for managing a network of members. We've built these for a health, wealth and wellness organisation and for a network platform built around its members. Software that runs the operation, not just the storefront.",
   },
   {
     id: 'support',

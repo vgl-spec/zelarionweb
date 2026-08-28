@@ -15,7 +15,7 @@ export default function FaqPage() {
               What people ask before hiring us.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-text-dim">
-              If your question is not here, ask it directly — you will get a real answer, not
+              If your question isn't here, ask it directly. You'll get a real answer, not
               a brochure.
             </p>
           </Reveal>

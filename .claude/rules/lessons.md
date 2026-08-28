@@ -9,6 +9,34 @@
 
 ## 2026-08-28
 
+- **A shared `layoutId` between a portalled dialog and a trigger that STAYS MOUNTED never
+  settles.** framer keeps projecting: the dialog held a residual transform
+  (`matrix(0.996, ...)`) indefinitely, so `getBoundingClientRect()` returned 861px for a
+  1024px element, and framer holds `pointer-events: none` on a projecting element, so
+  `elementsFromPoint` at the dialog's own centre returned the backdrop and the dialog was
+  not in the hit stack at all. Three separate assertions failed and every one looked like a
+  different bug. Fix: drop the shared projection and animate the dialog with plain
+  `opacity` + `scale`. **Shared-element layout is for a trigger that goes away.** If both
+  ends stay on screen, use an ordinary transition.
+
+- **Removing an element under the cursor makes the browser fire mouseover/mouseenter on
+  whatever is newly on top.** Closing the preview removed the backdrop, the tile underneath
+  received a synthetic mouseenter, and hover-to-open reopened it instantly. Escape and the
+  close button both appeared to do nothing while actually working perfectly.
+
+- **`mouseenter` is dispatched BEFORE the `mousemove` that caused it.** A "has the pointer
+  really moved since dismissal?" guard read at mouseenter time is always stale, which
+  blocked even the first hover. Evaluate that check when the hover-intent timer fires, by
+  which point a genuine hover has logged a mousemove and a synthetic enter has not. Movement
+  is the right discriminator here; a time window is not, because too short lets the second
+  synthetic event through and too long eats a deliberate re-hover.
+
+- **A boolean "blocked" flag cleared only by an event that might never fire is a stuck
+  state.** Blocking reopen until the tile's `mouseleave` looked right, but a pointer-out
+  dismissal leaves the pointer nowhere near the tile, so no mouseleave ever came and the
+  card could never open again. Prefer a self-healing signal (a timestamp comparison) over a
+  latch that depends on a specific future event.
+
 - **An unconditional focus-opens handler makes a card impossible to open by tapping.**
   `ExpandableProjectCard` opened on `onFocus` for keyboard parity and toggled on click. A tap
   fires focus THEN click, so React batched `setIsOpen(true)` followed by the click's

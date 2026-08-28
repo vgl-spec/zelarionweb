@@ -113,9 +113,9 @@ function ServicesMegaMenu() {
           <Layers className="h-5 w-5" strokeWidth={2.2} />
         </div>
         <div>
-          <p className="font-display text-sm font-semibold text-foreground">Full-Stack Product Studio</p>
+          <p className="font-display text-sm font-semibold text-foreground">One team, start to finish</p>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            Design, engineering, and launch under one roof -- no handoff gaps between teams.
+            We design, build, and launch it ourselves. No handoffs, no gaps between teams.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -143,7 +143,7 @@ function ServicesMegaMenu() {
           <Badge className="w-fit">Featured</Badge>
           <p className="font-display text-sm font-semibold text-foreground">Zelarion Design System</p>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            The same production-ready component kit powering this site -- built for teams who want speed
+            The exact component kit that powers this site. Built for teams who want speed
             without losing craft.
           </p>
           <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary">
