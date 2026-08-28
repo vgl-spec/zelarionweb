@@ -2,21 +2,20 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import SmoothScroll from './components/SmoothScroll';
-import Hero from './components/Hero';
-import ScrollExpandShowcase from './components/ScrollExpandShowcase';
-import Metrics from './components/Metrics';
-import Features from './components/Features';
-import HowItWorks from './components/HowItWorks';
-import Integrations from './components/Integrations';
-import Security from './components/Security';
-import Pricing from './components/Pricing';
-import SocialProof from './components/SocialProof';
-import { DemoProvider } from './components/DemoModal';
 import Navigation2 from './sections/Navigation2';
+import HeroStudio from './sections/HeroStudio';
+import CredibilityBar from './sections/CredibilityBar';
+import WorkShowcase from './sections/WorkShowcase';
+import ServicesSection from './sections/ServicesSection';
+import ProcessSection from './sections/ProcessSection';
 import TeamSection from './sections/TeamSection';
 import Faq5, { zelarionFaqCategories } from './sections/Faq5';
 import CursorTrailContact from './sections/CursorTrailContact';
 import CinematicFooter from './sections/CinematicFooter';
+import WorkPage from './pages/WorkPage';
+import ServicesPage from './pages/ServicesPage';
+import TeamPage from './pages/TeamPage';
+import FaqPage from './pages/FaqPage';
 import ProjectInquirySection from './sections/ProjectInquirySection';
 import NotFound from './sections/NotFound';
 
@@ -53,18 +52,14 @@ function SiteShell({ children, withTravellingCore = false }) {
 function HomePage() {
   return (
     <>
-      <Hero />
+      <HeroStudio />
+      <CredibilityBar />
       {/* The header and footer link to these three anchors, so the ids are load-bearing. */}
       <div id="work">
-        <ScrollExpandShowcase />
-        <Metrics />
-        <Features />
-        <HowItWorks />
-        <Integrations />
-        <Security />
-        <Pricing />
-        <SocialProof />
+        <WorkShowcase limit={3} showViewAll />
       </div>
+      <ServicesSection />
+      <ProcessSection />
       <div id="team">
         <TeamSection />
       </div>
@@ -76,31 +71,31 @@ function HomePage() {
   );
 }
 
+const ROUTES = [
+  { path: '/', element: <HomePage />, withTravellingCore: true },
+  { path: '/work', element: <WorkPage /> },
+  { path: '/services', element: <ServicesPage /> },
+  { path: '/team', element: <TeamPage /> },
+  { path: '/faq', element: <FaqPage /> },
+  { path: '/contact', element: <ProjectInquirySection /> },
+];
+
 function App() {
   return (
     <BrowserRouter>
-      <DemoProvider>
-        <Routes>
+      <Routes>
+        {ROUTES.map(({ path, element, withTravellingCore }) => (
           <Route
-            path="/"
+            key={path}
+            path={path}
             element={
-              <SiteShell withTravellingCore>
-                <HomePage />
-              </SiteShell>
+              <SiteShell withTravellingCore={withTravellingCore}>{element}</SiteShell>
             }
           />
-          <Route
-            path="/contact"
-            element={
-              <SiteShell>
-                <ProjectInquirySection />
-              </SiteShell>
-            }
-          />
-          {/* NotFound owns the full viewport, so it renders outside the shell. */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </DemoProvider>
+        ))}
+        {/* NotFound owns the full viewport, so it renders outside the shell. */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -9,6 +9,27 @@
 
 ## 2026-08-28
 
+- **A sibling rendered *after* `<main>` still loses to it when `<main>` has `z-10` and the
+  sibling has none.** `CinematicFooter`'s wrapper was `relative` with no z-index, so it
+  computed to `auto` and `<main class="relative z-10">` painted over the `lg:fixed` footer.
+  Every footer link and button was unhoverable and unclickable on every page tall enough to
+  still be scrolling -- `/contact` worked only because its content is short enough that
+  main's box ends above the footer. DOM order does not beat an explicit z-index. Fix: give
+  the footer wrapper `z-20` (header is `z-40`). **Symptom to recognise: "it works on one
+  short page and nowhere else" is almost always a stacking-context bug, not a CSS-per-page
+  bug.**
+
+- **Numbered markers (01/02/03) are only honest when the content is genuinely ordered.** The
+  hero listed six clients as `01`-`06` inside an `<ol>`, implying a ranking that does not
+  exist. Replaced the numbers with each client's sector and the `<ol>` with a `<ul>`: the
+  marker slot now carries real information and doubles as a scannable index. **Structural
+  devices should encode something true about the content, not decorate it.**
+
+- **Watch for a label and its description saying the same thing twice.** Once the sector
+  moved into the marker slot, three entries read "INDUSTRIAL SUPPLY / Industrial supply
+  for...". Whenever you promote a field into a label, re-read the neighbouring copy.
+
+
 - **An inline `style` on an element outranks every `:hover` rule in a stylesheet.** The
   `CursorTrailContact` CTA underline set its base state inline and its hover state in a
   `<style>` block, so it could never animate -- the acceptance criterion "underline grows to

@@ -371,7 +371,11 @@ export default function CinematicFooter() {
 
       <div
         ref={wrapperRef}
-        className="relative w-full overflow-hidden h-auto lg:h-screen lg:min-h-[640px] lg:[clip-path:polygon(0%_0,_100%_0%,_100%_100%,_0_100%)]"
+        // z-20 is load-bearing. <main> is `relative z-10`, and this wrapper is its next
+        // sibling; without a z-index it computes to `auto` and main paints over the
+        // lg:fixed footer, swallowing every hover and click on any page tall enough to
+        // still be scrolling. The header is z-40, so 20 sits between the two.
+        className="relative z-20 w-full overflow-hidden h-auto lg:h-screen lg:min-h-[640px] lg:[clip-path:polygon(0%_0,_100%_0%,_100%_100%,_0_100%)]"
         style={{ background: 'var(--background, #05070A)' }}
       >
         <footer className="cinematic-footer-wrapper flex w-full flex-col justify-between font-sans overflow-hidden relative h-auto py-16 gap-12 lg:fixed lg:bottom-0 lg:left-0 lg:h-screen lg:min-h-[640px] lg:py-0 lg:gap-0">
