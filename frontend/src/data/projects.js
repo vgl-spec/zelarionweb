@@ -12,7 +12,7 @@ export const PROJECTS = [
     domain: 'palattaolaw.vercel.app',
     sector: 'Legal',
     summary:
-      'A full-service law firm in Quezon City, founded in 2005 by a retired Sandiganbayan Justice with over twenty years on the bench. The site spans nine practice areas — litigation, election law, corporate and commercial, taxation, immigration, intellectual property, data privacy, land registration, and government procurement — each with its own detail page, alongside partner profiles and consultation calls-to-action throughout.',
+      'A full-service law firm in Quezon City, founded in 2005 by a retired Sandiganbayan Justice with over twenty years on the bench. The site spans nine practice areas: litigation, election law, corporate and commercial, taxation, immigration, intellectual property, data privacy, land registration, and government procurement. Each has its own detail page, alongside partner profiles and consultation calls-to-action throughout.',
     preview: '/assets/work/palattao-law-office.webp',
   },
   {
@@ -21,7 +21,7 @@ export const PROJECTS = [
     domain: 'kaiboph.vercel.app',
     sector: 'Industrial Supply',
     summary:
-      'A corporate site for a supplier serving industrial manufacturing, pulp & paper, and petro-chemical sectors. It carries an industries directory, principal-supplier partnerships spanning Australia, the USA, Germany, the UK, China, Hong Kong and Thailand, and a client roster that includes paper mills, tyre manufacturers and petrochemical companies — positioned on reliability, integrity and honesty.',
+      "A corporate site for a supplier serving industrial manufacturing, pulp & paper, and petro-chemical sectors. It carries an industries directory, principal-supplier partnerships spanning Australia, the USA, Germany, the UK, China, Hong Kong and Thailand, and a client roster that includes paper mills, tyre manufacturers and petrochemical companies. It's positioned on reliability, integrity and honesty.",
     preview: '/assets/work/kaibo-ph-opc.webp',
   },
   {

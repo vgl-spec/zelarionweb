@@ -78,7 +78,7 @@ export const zelarionFaqCategories = [
       {
         question: 'What does Zelarion actually build?',
         answer:
-          'Full products, not just mockups: React and Tailwind on the frontend, a Node/Express and MongoDB backend when the project needs one, wired together and shipped -- not handed off as a design file.',
+          'Full products, not mockups. React and Tailwind on the frontend, Node/Express and MongoDB on the backend when the project needs one. We wire it together and ship it, not hand it off as a design file.',
       },
       {
         question: 'How is a typical engagement scoped?',
@@ -93,7 +93,7 @@ export const zelarionFaqCategories = [
       {
         question: 'Who owns the code and the accounts?',
         answer:
-          'You do. The repository, the domain, the hosting and the database accounts are yours and stay in your name -- we work inside them rather than holding them hostage. Handover is part of delivery, not an upsell.',
+          "You do. The repository, the domain, the hosting and the database accounts are yours and stay in your name. We work inside them. We don't hold them hostage. Handover is part of delivery, not an upsell.",
       },
       {
         question: 'How does pricing work?',
@@ -108,7 +108,7 @@ export const zelarionFaqCategories = [
       {
         question: "What's your typical turnaround for an MVP?",
         answer:
-          'Weeks, not months, for a focused first version -- the exact number depends on scope, but we agree on a timeline before any code is written, not after.',
+          'Weeks, not months, for a focused first version. The exact number depends on scope, but we agree on a timeline before any code gets written, not after.',
       },
     ],
   },
@@ -119,20 +119,21 @@ export const zelarionFaqCategories = [
         Want the specifics before you commit?{' '}
         <Link to="/contact" className="text-primary underline underline-offset-4 hover:text-primary/80">
           Ask us directly
-        </Link>{' '}
-        -- we'd rather answer up front than surprise you later.
+        </Link>
+        .{' '}
+        We'd rather answer up front than surprise you later.
       </>
     ),
     items: [
       {
         question: "What's your tech stack?",
         answer:
-          'React 18 with Tailwind CSS on the frontend, and a Node/Express API backed by MongoDB when the product needs persistent data. We pick boring, well-supported tools on purpose -- your team should be able to hire for this stack later.',
+          'React 18 with Tailwind CSS on the frontend, and a Node/Express API backed by MongoDB when the product needs persistent data. We pick boring, well-supported tools on purpose. Your team should be able to hire for this stack later.',
       },
       {
         question: 'Do you handle design as well as engineering?',
         answer:
-          'Yes -- UI/UX design happens in-house alongside engineering, so the interface and the implementation are designed together instead of translated across a handoff.',
+          'Yes. UI/UX design happens in-house alongside engineering, so the interface and the implementation get designed together instead of translated across a handoff.',
       },
       {
         question: 'How do you handle revisions after launch?',

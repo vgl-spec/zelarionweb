@@ -11,7 +11,7 @@ const STEPS = [
     icon: Search,
     title: 'Understand the business',
     description:
-      'We learn what the business does, who will use the system day to day, and what "done" actually means for them — before any design or code.',
+      'We learn what the business does, who will use the system day to day, and what "done" actually means for them. All before any design or code.',
   },
   {
     icon: PenTool,
@@ -23,7 +23,7 @@ const STEPS = [
     icon: Rocket,
     title: 'Launch on your infrastructure',
     description:
-      'The site or system goes live under your own domain, checked against how it will actually be used — not a staged demo environment.',
+      'The site or system goes live under your own domain, checked against how it will actually be used. Not a staged demo environment.',
   },
   {
     icon: MessagesSquare,

@@ -22,8 +22,8 @@ export default function ServicesPage() {
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-text-dim">
               Zelarion is a software studio based in the Philippines, working
               with clients internationally. Below is what we build and how an
-              engagement actually runs — grounded in systems we've shipped for
-              a law firm, industrial suppliers, and member-based
+              engagement actually runs. It's grounded in systems we've
+              shipped for a law firm, industrial suppliers, and member-based
               organisations.
             </p>
           </Reveal>
