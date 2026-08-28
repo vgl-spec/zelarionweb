@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import SmoothScroll from './components/SmoothScroll';
+import ScrollToHash from './components/ScrollToHash';
 import Navigation2 from './sections/Navigation2';
 import HeroStudio from './sections/HeroStudio';
 import CredibilityBar from './sections/CredibilityBar';
@@ -9,13 +10,11 @@ import ScrollExpandShowcase from './sections/ScrollExpandShowcase';
 import WorkShowcase from './sections/WorkShowcase';
 import ServicesSection from './sections/ServicesSection';
 import ProcessSection from './sections/ProcessSection';
-import TeamSection from './sections/TeamSection';
 import Faq5, { zelarionFaqCategories } from './sections/Faq5';
 import CursorTrailContact from './sections/CursorTrailContact';
 import CinematicFooter from './sections/CinematicFooter';
 import WorkPage from './pages/WorkPage';
 import ServicesPage from './pages/ServicesPage';
-import TeamPage from './pages/TeamPage';
 import FaqPage from './pages/FaqPage';
 import ProjectInquirySection from './sections/ProjectInquirySection';
 import NotFound from './sections/NotFound';
@@ -56,15 +55,13 @@ function HomePage() {
       <HeroStudio />
       <CredibilityBar />
       <ScrollExpandShowcase />
-      {/* The header and footer link to these three anchors, so the ids are load-bearing. */}
+      {/* The header and footer link to these dedicated routes now (not these anchors),
+          but the ids stay: they're still valid in-page scroll targets for ScrollToHash. */}
       <div id="work">
         <WorkShowcase limit={3} showViewAll />
       </div>
       <ServicesSection />
       <ProcessSection />
-      <div id="team">
-        <TeamSection />
-      </div>
       <div id="faq">
         <Faq5 categories={zelarionFaqCategories} />
       </div>
@@ -77,7 +74,6 @@ const ROUTES = [
   { path: '/', element: <HomePage />, withTravellingCore: true },
   { path: '/work', element: <WorkPage /> },
   { path: '/services', element: <ServicesPage /> },
-  { path: '/team', element: <TeamPage /> },
   { path: '/faq', element: <FaqPage /> },
   { path: '/contact', element: <ProjectInquirySection /> },
 ];
@@ -85,6 +81,12 @@ const ROUTES = [
 function App() {
   return (
     <BrowserRouter>
+      {/* Mounted here, not inside SiteShell: each Route's element (including SiteShell)
+          is a distinct subtree, so react-router unmounts/remounts it on every navigation.
+          ScrollToHash needs to persist across navigations to tell "pathname changed" apart
+          from "just mounted" -- a fresh instance per route would see every navigation as a
+          first mount and never fire the scroll-to-top fallback. */}
+      <ScrollToHash />
       <Routes>
         {ROUTES.map(({ path, element, withTravellingCore }) => (
           <Route

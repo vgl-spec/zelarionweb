@@ -9,6 +9,96 @@
 
 ## 2026-08-28
 
+- **An unconditional focus-opens handler makes a card impossible to open by tapping.**
+  `ExpandableProjectCard` opened on `onFocus` for keyboard parity and toggled on click. A tap
+  fires focus THEN click, so React batched `setIsOpen(true)` followed by the click's
+  `setIsOpen(open => !open)` and the net result was closed — every tap a no-op. The event
+  trace made it obvious where reasoning had not: the click handler set `aria-expanded=true`
+  and the final state was `false`. Fix: gate the focus branch on
+  `event.target.matches(':focus-visible')`, which is false for pointer/touch focus and true
+  for keyboard focus — exactly the needed distinction. **When hover, focus and click all
+  drive one piece of state, enumerate the real event ORDER for each input type before
+  writing the handlers.**
+
+- **One flat scrim cannot both protect text and preserve a background effect.** The shader
+  behind the contact form was set to `opacity-0.15` under a `bg-ink/70` wash — about 4%
+  effective, so the requested animated background was simply invisible while still costing a
+  WebGL context. Fix: run the effect at 60% and put the darkening *where the text is* — a
+  horizontal ramp opaque over the form column and clearing toward the empty right-hand side.
+  **Protect the text, not the whole viewport.**
+
+- **A copied animation's end value is tuned for the page it came from, not yours.** The
+  ported HeroParallax settles its card block at `translateY: +500`, which in the reference
+  sits on a page where the card wall is the only content. Dropped into a hero with a header
+  above it, that pushed the rows half a viewport below their layout position and left a
+  ~440px band of empty background between the header and the first row for the entire middle
+  of the scroll — invisible at scroll 0 and at the bottom, so both the "top" and "deep"
+  screenshots looked perfect. `+160` keeps the fly-down entrance with no void. **Screenshot
+  the MIDDLE of a scroll-driven animation, not just its endpoints** — the defect lives in the
+  transition.
+
+- **Changing a validator's RETURN SHAPE silently disabled every validation on the endpoint.**
+  `validateDemoPayload` was refactored from returning an array to returning
+  `{ errors, data }`, but the route handler still read `const errors = validateDemoPayload(...)`
+  then `if (errors.length > 0)`. On an object `.length` is `undefined`, and `undefined > 0` is
+  `false` — so **every** rule, old and new, passed everything through: no email check, no
+  length caps, no currency allowlist, no unknown-field rejection. The file passed
+  `node --check` and the server started fine. A second bug rode along: `doc` was still built
+  from raw `req.body`, so the sanitized values were computed and thrown away and the three new
+  fields were never persisted at all.
+  **Two takeaways.** (1) When you widen a function's return type, grep every call site in the
+  same commit — a destructure that silently yields `undefined` fails open, which is the worst
+  possible direction for a validator (rule 14 says fail closed). (2) **A validation layer with
+  no test that asserts a REJECTION is indistinguishable from no validation layer.** The suite
+  now has 38 tests, and the ones that matter are the ones expecting 422.
+
+- **A rate limit kills every parallel subagent at once and can leave a file half-written.**
+  Four builders died mid-task on a shared sonnet session limit. Three had written nothing;
+  the fourth left `backend/server.js` with 166 new lines that passed `node --check` and
+  *looked* finished — but no tests existed and nothing had been run. **`node --check` and a
+  green build prove syntax, never completeness.** When reviving a killed agent, tell it to
+  AUDIT the partial work first and report what actually landed, rather than continuing from
+  where it thinks it was.
+
+- **Deleting JSX leaves its imports behind, and `CI=true` turns that into a failed build.**
+  Removing the footer's "Call Us" button orphaned the `Phone` import from `lucide-react`;
+  CRA promotes the unused-var warning to an error. **After deleting any markup block, grep
+  the file's imports for every symbol that block was the last user of.** Same trap as
+  deleting a component and leaving its route import.
+
+- **A live `tel:` link to a placeholder number is worse than no phone number at all.** The
+  footer shipped `+1 (555) 010-0000` — a reserved fictional US number — behind a "Call Us"
+  pill on a lead-generation page, with a stale "swap before shipping" comment above it. A
+  prospect who taps a dead number is a lost lead plus a credibility hit. Placeholder contact
+  details are not neutral filler; either they are real or the affordance comes out.
+
+- **"Label promises X, href goes to Y" is one bug class, and it hides in menus as well as
+  footers.** After fixing footer links that pointed at unreachable `/#hash` anchors, the
+  Services mega-menu turned out to have **eight** invented sub-service labels ("Cloud &
+  DevOps", "QA & Testing" — offered nowhere else on the site) with **every one pointing at
+  `/work`**. Auditing one navigation surface means auditing all of them: enumerate every
+  link's label next to its destination and read the two together.
+
+- **An ffmpeg crop bigger than the source writes a 0-byte file and the shell loop still exits 0.**
+  Cropping `2880:1920` from an 1800px-tall capture failed on all 16 images with
+  "Invalid too big or non positive size", yet the loop reported nothing and left 16 empty
+  `.webp` files behind. **After any batch encode, list the output sizes** — `ls -l | awk
+  '{print $5, $9}'` — rather than trusting the exit code. A 0-byte or 3 KB output is the
+  tell.
+
+- **Contact-sheet many captures instead of opening them one by one.** `ffmpeg -i seq/%02d.png
+  -vf "scale=460:-1,tile=4x4:padding=6" -frames:v 1 sheet.png` puts 16 screenshots in one
+  image, which is one read instead of sixteen. Two gotchas: this Windows ffmpeg build has
+  **no glob support** (`-pattern_type glob` errors with "globbing is not supported by this
+  libavformat build"), so copy the files to a numbered sequence first; and `tile` needs every
+  input at the same size.
+
+- **Crawling a site's own nav to pick screenshot targets will find 404s and PDFs.** Discovering
+  hrefs from the DOM beats guessing paths, but `/packages` returned a styled 404 page whose
+  `<title>` was identical to the home page's, so the title check passed. Another link started a
+  PDF download and hung `page.goto`. **Look at the pixels** — an unusually small encoded file
+  (2.8 KB vs a 20 KB norm) is the cheapest signal that a capture is mostly blank.
+
 - **`body { overflow: hidden }` does NOT lock the page when Lenis is driving the scroll.**
   Lenis runs its own rAF loop and calls `window.scrollTo`, so it sails straight through the
   overflow lock: an open profile dialog scrolled the page 593px behind itself. A browser test

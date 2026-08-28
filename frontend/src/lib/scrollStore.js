@@ -44,6 +44,28 @@ export function unlockScroll() {
   scrollDriver?.start();
 }
 
+// Scroll to a position or element through whichever driver is active, so the tween runs
+// inside Lenis's own rAF loop instead of fighting it with a raw window.scrollTo. Under
+// prefers-reduced-motion there is no Lenis instance (see the comment above scrollDriver),
+// so this falls back to the native API directly, honouring the same `offset`/`immediate`
+// shape as Lenis's own scrollTo (https://github.com/darkroomengineering/lenis) so callers
+// don't need to branch on which driver is live.
+export function scrollTo(target, { offset = 0, immediate = false } = {}) {
+  if (scrollDriver) {
+    scrollDriver.scrollTo(target, { offset, immediate });
+    return;
+  }
+  const behavior = immediate ? 'auto' : 'smooth';
+  if (typeof target === 'number') {
+    window.scrollTo({ top: target + offset, behavior });
+    return;
+  }
+  if (target && typeof target.getBoundingClientRect === 'function') {
+    const top = window.scrollY + target.getBoundingClientRect().top + offset;
+    window.scrollTo({ top, behavior });
+  }
+}
+
 export function registerSection(name, el) {
   if (!el) return;
   const rect = el.getBoundingClientRect();

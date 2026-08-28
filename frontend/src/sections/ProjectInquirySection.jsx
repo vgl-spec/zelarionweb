@@ -1,9 +1,9 @@
-import React, { useId, useRef, useState } from 'react';
+import React, { lazy, Suspense, useId, useMemo, useRef, useState } from 'react';
 import {
   User,
   Mail,
   Building2,
-  Calendar,
+  Calendar as CalendarIcon,
   Users,
   ArrowRight,
   Loader2,
@@ -22,29 +22,75 @@ import {
   SelectContent,
   SelectItem,
 } from '../components/ui/select';
+import { Popover, PopoverTrigger, PopoverContent } from '../components/ui/popover';
+import { Calendar } from '../components/ui/calendar';
+import { Combobox } from '../components/ui/combobox';
+import { sanitizeText } from '../lib/sanitize';
 import { cn } from '../lib/utils';
 
+// three/@react-three pull ~30MB of source into whichever chunk imports them (see
+// App.js's TravellingCore comment) -- this backdrop is purely decorative, so it's
+// lazy-loaded to keep `three` out of the section's own bundle chunk.
+const ShaderAnimation = lazy(() => import('../components/ui/shader-animation'));
+
 const PROJECT_TYPES = ['Web Application', 'Mobile App', 'Brand Design', 'Strategy Consulting'];
-const BUDGET_RANGES = ['$10k-$25k', '$25k-$50k', '$50k-$100k', '$100k+'];
 const TEAM_SIZES = ['Solo', 'Small (2-4)', 'Medium (5-8)', 'Large (9+)'];
 
+// Mirrors backend/server.js's SUPPORTED_CURRENCIES exactly -- that Set is the
+// server's fail-closed allowlist (idempotency-concurrency.md rule 14: an
+// unrecognized enum is rejected, never passed through), so offering anything
+// this list doesn't contain would just be a guaranteed 422 round-trip.
+const CURRENCIES = [
+  { code: 'PHP', name: 'Philippine peso' },
+  { code: 'USD', name: 'US dollar' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'GBP', name: 'British pound' },
+  { code: 'AUD', name: 'Australian dollar' },
+  { code: 'SGD', name: 'Singapore dollar' },
+  { code: 'CAD', name: 'Canadian dollar' },
+  { code: 'JPY', name: 'Japanese yen' },
+  { code: 'AED', name: 'UAE dirham' },
+];
+const DEFAULT_CURRENCY = 'PHP';
+// Mirrors backend/server.js's BUDGET_AMOUNT_MAX -- catching an out-of-range
+// amount here surfaces it as an inline field error instead of a round-trip
+// to the server for something the client already knows is invalid.
+const BUDGET_AMOUNT_MAX = 100_000_000;
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_MAX = 120;
+const EMAIL_MAX = 254;
+const COMPANY_MAX = 160;
+const PROJECT_TYPE_MAX = 120;
 const MESSAGE_MAX = 1000;
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/demo`;
+
+const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
 // Backend field name -> our form field name, so a 422's `detail: [{field,
 // message}]` (see .claude/rules/idempotency-concurrency.md, rule 9: validate
 // at the boundary) lands under the control the user actually sees, instead
 // of as a generic "something went wrong".
-const SERVER_FIELD_MAP = { name: 'fullName', email: 'email', company: 'company', team_size: 'teamSize' };
+const SERVER_FIELD_MAP = {
+  name: 'fullName',
+  email: 'email',
+  company: 'company',
+  team_size: 'teamSize',
+  preferred_date: 'timeline',
+  message: 'projectDetails',
+  project_type: 'projectType',
+  budget_currency: 'budgetCurrency',
+  budget_amount: 'budgetAmount',
+};
 
 const INITIAL_FORM = {
   fullName: '',
   email: '',
   company: '',
   projectType: '',
-  budget: '',
-  timeline: '',
+  budgetCurrency: DEFAULT_CURRENCY,
+  budgetAmount: '',
+  timeline: null, // Date | null -- see Calendar/Popover field below
   teamSize: '',
   projectDetails: '',
 };
@@ -59,6 +105,27 @@ function generateIdempotencyKey() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 }
 
+// Local calendar midnight, not UTC midnight -- the `disabled={{ before }}`
+// matcher below needs a same-timezone boundary to compare each rendered day
+// against, or "today" in the calendar's own local rendering would disagree
+// with it near midnight.
+function startOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+// `date.toISOString()` converts to UTC first -- for anyone east of Greenwich
+// (this studio is UTC+8) that rolls a locally-selected "today" back to
+// "yesterday" for part of the day. Building the string from the Date
+// object's own local getters instead keeps the wire value matching what the
+// calendar actually showed the user as selected.
+function toLocalISODate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function validate(form) {
   const errors = {};
   if (!form.fullName.trim()) errors.fullName = 'Full name is required.';
@@ -69,30 +136,52 @@ function validate(form) {
   }
   if (!form.company.trim()) errors.company = 'Company is required.';
   if (!form.teamSize) errors.teamSize = 'Select a team size.';
+
+  const amountRaw = form.budgetAmount.trim();
+  if (amountRaw) {
+    const amountNum = Number(amountRaw);
+    // budget_currency/budget_amount are sent as a pair or not at all (see
+    // buildPayload) -- currency always has a default value, so its mere
+    // presence can't mean "the user wants to specify a budget" the way a
+    // typed amount can. That makes "amount without a valid number" the only
+    // client-side check that means anything; "currency without amount" is
+    // impossible by construction, matching the mutual-dependency rule
+    // backend/server.js enforces.
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      errors.budgetAmount = 'Enter a positive amount.';
+    } else if (amountNum > BUDGET_AMOUNT_MAX) {
+      errors.budgetAmount = `Amount must be at most ${BUDGET_AMOUNT_MAX.toLocaleString()}.`;
+    }
+  }
+
   return errors;
 }
 
-// The `/api/demo` contract (POST { name, email, company, team_size,
-// preferred_date?, message? }) has no first-class fields yet for project
-// type or budget. Folding them into `message` -- capped at the server's
-// 1000-char limit -- keeps that input instead of the server silently
-// dropping it. TEMPORARY: replace with real fields once the schema is
-// extended; tracked as a mapping shim, not a design choice.
 function buildPayload(form) {
-  const extras = [];
-  if (form.projectType) extras.push(`Project type: ${form.projectType}`);
-  if (form.budget) extras.push(`Budget range: ${form.budget}`);
-  const details = form.projectDetails.trim();
-  const message = [...extras, details].filter(Boolean).join('\n').slice(0, MESSAGE_MAX);
-
-  return {
-    name: form.fullName.trim(),
-    email: form.email.trim(),
-    company: form.company.trim(),
+  const payload = {
+    name: sanitizeText(form.fullName, { maxLength: NAME_MAX }),
+    email: sanitizeText(form.email, { maxLength: EMAIL_MAX }),
+    company: sanitizeText(form.company, { maxLength: COMPANY_MAX }),
     team_size: form.teamSize,
-    ...(form.timeline ? { preferred_date: form.timeline } : {}),
-    ...(message ? { message } : {}),
   };
+
+  if (form.timeline) {
+    payload.preferred_date = toLocalISODate(form.timeline);
+  }
+
+  const message = sanitizeText(form.projectDetails, { maxLength: MESSAGE_MAX, allowNewlines: true });
+  if (message) payload.message = message;
+
+  const projectType = sanitizeText(form.projectType, { maxLength: PROJECT_TYPE_MAX });
+  if (projectType) payload.project_type = projectType;
+
+  const amountRaw = form.budgetAmount.trim();
+  if (amountRaw) {
+    payload.budget_currency = form.budgetCurrency;
+    payload.budget_amount = Number(amountRaw);
+  }
+
+  return payload;
 }
 
 async function defaultSubmit(payload, idempotencyKey) {
@@ -133,6 +222,8 @@ export default function ProjectInquirySection({ onSubmit, className }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState('');
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const dateContentRef = useRef(null);
   const pending = status === 'submitting';
 
   // One idempotency key per user intent, not per attempt: created lazily on
@@ -155,6 +246,20 @@ export default function ProjectInquirySection({ onSubmit, className }) {
     setForm((f) => ({ ...f, [key]: value }));
     if (fieldErrors[key]) setFieldErrors((errs) => ({ ...errs, [key]: undefined }));
   };
+
+  const handleTimelineSelect = (date) => {
+    setForm((f) => ({ ...f, timeline: date }));
+    setDatePopoverOpen(false);
+    if (fieldErrors.timeline) setFieldErrors((errs) => ({ ...errs, timeline: undefined }));
+  };
+
+  // Live preview only -- this never writes back into the amount input's own
+  // value, which is what would fight the caret while the user is typing.
+  const amountHint = useMemo(() => {
+    const amountNum = Number(form.budgetAmount.trim());
+    if (!form.budgetAmount.trim() || !Number.isFinite(amountNum)) return null;
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: form.budgetCurrency }).format(amountNum);
+  }, [form.budgetAmount, form.budgetCurrency]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -218,8 +323,35 @@ export default function ProjectInquirySection({ onSubmit, className }) {
   };
 
   return (
-    <section id="contact" className={cn('py-24 md:py-32', className)} data-testid="project-inquiry-section">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="contact" className={cn('relative overflow-hidden py-24 md:py-32', className)} data-testid="project-inquiry-section">
+      {/* Decorative backdrop only: absolutely positioned behind the content well
+          (z-0), never in its stacking context, and pointer-events are killed on
+          it and everything it renders -- @react-three/fiber's own canvas resets
+          `pointer-events: auto` on itself, so the blanket [&_*] selector is what
+          actually stops it from swallowing clicks (see
+          .claude/rules/lessons.md, TravellingCore entry). A dark scrim sits on
+          top of it, under the content, so the shader reads as texture rather
+          than competing with form labels for contrast. */}
+      <Suspense fallback={null}>
+        <ShaderAnimation className="pointer-events-none absolute inset-0 z-0 opacity-60 [&_*]:pointer-events-none" />
+      </Suspense>
+      {/* Two scrims rather than one flat wash. A single opaque overlay strong enough
+          to protect the form also erased the shader everywhere — 0.15 opacity under
+          bg-ink/70 left roughly 4% of it visible, which is not a background. Instead
+          the shader runs at 60% and the darkening is placed where the text is: a
+          horizontal ramp that is near-opaque over the left-hand form column and
+          clears toward the right, plus a light vertical wash so the section still
+          meets the pages above and below it. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-[1] bg-gradient-to-r from-ink via-ink/85 to-ink/25"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-[1] bg-gradient-to-b from-ink via-transparent to-ink"
+      />
+
+      <div className="relative z-10 mx-auto max-w-6xl px-6">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-12">
           <div className="lg:col-span-3">
             <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
@@ -256,6 +388,7 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                         value={form.fullName}
                         onChange={setField('fullName')}
                         placeholder="Ada Lovelace"
+                        maxLength={NAME_MAX}
                         aria-invalid={Boolean(fieldErrors.fullName)}
                         aria-describedby={fieldErrors.fullName ? `${uid}-fullName-error` : undefined}
                         data-testid="inquiry-input-fullName"
@@ -279,6 +412,7 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                         value={form.email}
                         onChange={setField('email')}
                         placeholder="ada@company.com"
+                        maxLength={EMAIL_MAX}
                         aria-invalid={Boolean(fieldErrors.email)}
                         aria-describedby={fieldErrors.email ? `${uid}-email-error` : undefined}
                         data-testid="inquiry-input-email"
@@ -301,6 +435,7 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                         value={form.company}
                         onChange={setField('company')}
                         placeholder="Company name"
+                        maxLength={COMPANY_MAX}
                         aria-invalid={Boolean(fieldErrors.company)}
                         aria-describedby={fieldErrors.company ? `${uid}-company-error` : undefined}
                         data-testid="inquiry-input-company"
@@ -315,49 +450,111 @@ export default function ProjectInquirySection({ onSubmit, className }) {
 
                   <div>
                     <Label htmlFor={`${uid}-projectType`}>Project Type</Label>
-                    <Select value={form.projectType} onValueChange={setSelectField('projectType')}>
-                      <SelectTrigger id={`${uid}-projectType`} className="mt-1.5" data-testid="inquiry-select-projectType">
-                        <SelectValue placeholder="Select a project type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PROJECT_TYPES.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor={`${uid}-budget`}>Budget Range</Label>
-                    <Select value={form.budget} onValueChange={setSelectField('budget')}>
-                      <SelectTrigger id={`${uid}-budget`} className="mt-1.5" data-testid="inquiry-select-budget">
-                        <SelectValue placeholder="Select a budget range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BUDGET_RANGES.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-1.5">
+                      <Combobox
+                        id={`${uid}-projectType`}
+                        value={form.projectType}
+                        onValueChange={setSelectField('projectType')}
+                        options={PROJECT_TYPES}
+                        placeholder="Select or type a project type"
+                        maxLength={PROJECT_TYPE_MAX}
+                        data-testid="inquiry-input-projectType"
+                      />
+                    </div>
                   </div>
 
                   <div>
                     <Label htmlFor={`${uid}-timeline`}>Expected Start Date</Label>
-                    <div className="relative mt-1.5">
-                      <FieldIcon icon={Calendar} />
-                      <Input
-                        id={`${uid}-timeline`}
-                        type="date"
-                        className="pl-10 [color-scheme:dark]"
-                        value={form.timeline}
-                        onChange={setField('timeline')}
-                        data-testid="inquiry-input-timeline"
-                      />
-                    </div>
+                    <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id={`${uid}-timeline`}
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            'mt-1.5 w-full justify-start gap-2 rounded-md border-input bg-white/[0.02] px-4 text-left text-sm font-normal hover:bg-white/[0.05]',
+                            !form.timeline && 'text-muted-foreground'
+                          )}
+                          data-testid="inquiry-input-timeline"
+                        >
+                          <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                          {form.timeline ? DATE_FORMATTER.format(form.timeline) : 'Select a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        ref={dateContentRef}
+                        align="start"
+                        className="w-auto p-0"
+                        onOpenAutoFocus={(e) => {
+                          // Radix's default is "focus the first tabbable
+                          // descendant", which in DOM order is the previous-
+                          // month nav button, not a day -- that would make
+                          // arrow keys do nothing on open. Focus the day
+                          // react-day-picker itself designates as the
+                          // roving-tabindex target (the only day rendered
+                          // with a literal tabindex="0") instead, so ArrowUp/
+                          // ArrowDown/ArrowLeft/ArrowRight work immediately.
+                          e.preventDefault();
+                          dateContentRef.current?.querySelector('button[tabindex="0"]')?.focus();
+                        }}
+                      >
+                        <Calendar
+                          selected={form.timeline ?? undefined}
+                          onSelect={handleTimelineSelect}
+                          disabled={{ before: startOfToday() }}
+                          defaultMonth={form.timeline ?? undefined}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`${uid}-budgetCurrency`}>Budget Currency</Label>
+                    <Select value={form.budgetCurrency} onValueChange={setSelectField('budgetCurrency')}>
+                      <SelectTrigger id={`${uid}-budgetCurrency`} className="mt-1.5" data-testid="inquiry-select-budgetCurrency">
+                        <SelectValue placeholder="Select a currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map(({ code, name }) => (
+                          <SelectItem key={code} value={code}>
+                            {code} — {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`${uid}-budgetAmount`}>Budget Amount</Label>
+                    <Input
+                      id={`${uid}-budgetAmount`}
+                      type="text"
+                      inputMode="decimal"
+                      className="mt-1.5"
+                      value={form.budgetAmount}
+                      onChange={setField('budgetAmount')}
+                      placeholder="e.g. 150000"
+                      aria-invalid={Boolean(fieldErrors.budgetAmount)}
+                      aria-describedby={
+                        fieldErrors.budgetAmount
+                          ? `${uid}-budgetAmount-error`
+                          : amountHint
+                            ? `${uid}-budgetAmount-hint`
+                            : undefined
+                      }
+                      data-testid="inquiry-input-budgetAmount"
+                    />
+                    {fieldErrors.budgetAmount ? (
+                      <p id={`${uid}-budgetAmount-error`} className="mt-1.5 text-xs text-destructive">
+                        {fieldErrors.budgetAmount}
+                      </p>
+                    ) : (
+                      amountHint && (
+                        <p id={`${uid}-budgetAmount-hint`} className="mt-1.5 text-xs text-muted-foreground">
+                          {amountHint}
+                        </p>
+                      )
+                    )}
                   </div>
 
                   <div className="sm:col-span-2">
@@ -401,8 +598,16 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                       value={form.projectDetails}
                       onChange={setField('projectDetails')}
                       placeholder="What are you building, and what does success look like?"
+                      maxLength={MESSAGE_MAX}
+                      aria-invalid={Boolean(fieldErrors.projectDetails)}
+                      aria-describedby={fieldErrors.projectDetails ? `${uid}-projectDetails-error` : undefined}
                       data-testid="inquiry-input-projectDetails"
                     />
+                    {fieldErrors.projectDetails && (
+                      <p id={`${uid}-projectDetails-error`} className="mt-1.5 text-xs text-destructive">
+                        {fieldErrors.projectDetails}
+                      </p>
+                    )}
                   </div>
                 </div>
 

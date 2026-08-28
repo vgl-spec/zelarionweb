@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
+import { ArrowRight, Mail, MapPin, ArrowUp } from 'lucide-react';
 import { cn, prefersReducedMotion } from '../lib/utils';
 
 // CRA has no SSR, so this guard never actually skips anything at runtime -- kept
@@ -18,18 +18,25 @@ if (typeof window !== 'undefined') {
 const SITE = {
   name: 'Zelarion',
   shortName: 'Zelarion',
-  // Placeholders -- swap for real contact details before shipping.
   contact: {
+    // TODO(zelarion): confirm this mailbox is monitored before launch.
     email: 'hello@zelarion.com',
-    phone: '+1 (555) 010-0000',
-    addressShort: 'Remote-first, worldwide',
+    // No phone number here on purpose. This carried '+1 (555) 010-0000' -- a
+    // reserved fictional US number -- behind a live `tel:` link on a lead
+    // generation page. A prospect who taps a dead number is a lost lead and a
+    // credibility hit, which is strictly worse than offering one fewer channel.
+    // Restore a "Call us" pill only once there is a real, answered number.
+    addressShort: 'Philippines — working with clients internationally',
   },
 };
 
+// Dedicated routes exist for all of these (see App.js's ROUTES), so every pill points
+// there directly instead of at a home-page hash anchor -- react-router does not scroll to
+// a hash on navigation, so `/#work` etc. used to land on an arbitrary scroll position with
+// no visible effect. Team was dropped: the /team route and its section no longer exist.
 const MAIN_NAV = [
-  { href: '/#work', label: 'Work' },
-  { href: '/#team', label: 'Team' },
-  { href: '/#faq', label: 'FAQ' },
+  { href: '/work', label: 'Work' },
+  { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -429,14 +436,6 @@ export default function CinematicFooter() {
                   Email Us
                 </MagneticButton>
 
-                <MagneticButton
-                  as="a"
-                  href={`tel:${SITE.contact.phone}`}
-                  className="footer-glass-pill group flex items-center gap-3 rounded-full px-9 py-5 text-sm font-bold md:text-base"
-                >
-                  <Phone className="cf-text-dim size-5 transition-colors group-hover:text-[var(--foreground)]" />
-                  Call Us
-                </MagneticButton>
               </div>
 
               {/* Nav pills */}
