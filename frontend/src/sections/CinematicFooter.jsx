@@ -19,8 +19,7 @@ const SITE = {
   name: 'Zelarion',
   shortName: 'Zelarion',
   contact: {
-    // TODO(zelarion): confirm this mailbox is monitored before launch.
-    email: 'hello@zelarion.com',
+    email: 'bautista.vergel.agripa@gmail.com',
     // Two forms on purpose: `phoneDial` is E.164 with no spaces or punctuation,
     // which is what a `tel:` href must carry for every dialer to parse it, while
     // `phone` is the grouped form a human reads. Keep them in sync.
@@ -35,7 +34,7 @@ const SITE = {
 // a hash on navigation, so `/#work` etc. used to land on an arbitrary scroll position with
 // no visible effect. Team was dropped: the /team route and its section no longer exist.
 const MAIN_NAV = [
-  { href: '/work', label: 'Work' },
+  { href: '/work', label: 'Solutions' },
   { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];

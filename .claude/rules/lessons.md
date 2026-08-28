@@ -9,6 +9,11 @@
 
 ## 2026-08-28
 
+- **Hover previews must not treat ambient scroll as a dismissal signal when Lenis owns momentum.**
+  A scroll-to-dismiss handler conflicts with Lenis's continued motion and closes a freshly
+  opened card without user intent. Keep non-modal previews dismissible through explicit
+  intent instead: pointer exit, backdrop, Escape, or a close control.
+
 - **A shared `layoutId` between a portalled dialog and a trigger that STAYS MOUNTED never
   settles.** framer keeps projecting: the dialog held a residual transform
   (`matrix(0.996, ...)`) indefinitely, so `getBoundingClientRect()` returned 861px for a

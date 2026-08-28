@@ -91,9 +91,9 @@ export const zelarionFaqCategories = [
           'Both. Early-stage teams usually need an MVP built fast and cheaply enough to iterate on; established teams usually need a specific feature, redesign, or a codebase taken over cleanly. We scope each differently.',
       },
       {
-        question: 'Who owns the code and the accounts?',
+        question: 'What happens after launch?',
         answer:
-          "You do. The repository, the domain, the hosting and the database accounts are yours and stay in your name. We work inside them. We don't hold them hostage. Handover is part of delivery, not an upsell.",
+          'Launch is a milestone, not a finish line. Post-launch support, refinements, and the next phase are scoped around your goals and the engagement, so the product can keep creating value as the business evolves.',
       },
       {
         question: 'How does pricing work?',

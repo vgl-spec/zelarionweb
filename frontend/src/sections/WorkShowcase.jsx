@@ -7,7 +7,7 @@ import { PROJECTS } from '../data/projects';
 import { cn } from '../lib/utils';
 
 /**
- * The portfolio grid. `limit` lets the home page show a subset while /work shows all six
+ * The solutions grid. `limit` lets the home page show a subset while /work shows the full set
  * from the same data source. Cards are screenshot previews that expand to their full
  * detail on hover, tap or focus — there is no click-through to the client sites.
  */
@@ -18,13 +18,13 @@ export default function WorkShowcase({ limit, showViewAll = false, className }) 
     <section className={cn('relative py-section', className)}>
       <div className="mx-auto max-w-content px-6">
         <Reveal className="max-w-2xl">
-          <Eyebrow>Selected work</Eyebrow>
+          <Eyebrow>Selected solutions</Eyebrow>
           <h2 className="mt-5 font-display text-4xl font-bold tracking-tightest text-text sm:text-5xl">
-            Systems running in production.
+            Digital systems built for real operations.
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-text-dim">
-            Every site below belongs to a real business and is live today. Each preview is a
-            real screenshot of its landing page — hover or tap a card to read what it does.
+            Explore a selection of digital solutions designed to support customer experiences,
+            business operations, and the teams behind them. Hover or tap a card to learn more.
           </p>
         </Reveal>
 
@@ -44,7 +44,7 @@ export default function WorkShowcase({ limit, showViewAll = false, className }) 
               to="/work"
               className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-line px-6 text-sm font-medium text-text transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-aurora-teal/50 hover:text-aurora-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-teal focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
             >
-              See every project
+              Explore all solutions
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </Reveal>

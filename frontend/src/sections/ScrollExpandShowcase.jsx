@@ -11,19 +11,19 @@ const MEDIA_ALT = 'Abstract 3D render of white wireframe cubes connected in a la
 
 // Single source for the copy: the animated and reduced-motion trees render the
 // same words, and a wording change must not have to be made in two places.
-const EYEBROW = 'What a Zelarion build commits to';
+const EYEBROW = 'Digital solutions built around momentum';
 const TITLE_LEAD = 'Built to last.';
 const TITLE_TRAIL = 'Not to demo.';
 const SCROLL_HINT = 'Scroll to expand';
-const BODY_HEADING = "It works. It's yours.";
-// The strongest claim (ownership) gets the accent treatment wherever it
-// appears in BODY, via renderBodyLine() below. Kept as its own constant so
-// the highlighted phrase can't drift out of sync with the sentence it lives in.
-const BODY_ACCENT = 'Yours, permanently.';
+const BODY_HEADING = 'Built for what comes next.';
+// The key benefit gets the accent treatment wherever it appears in BODY, via
+// renderBodyLine() below. Keeping it as a constant prevents the animated and
+// reduced-motion presentations from drifting apart.
+const BODY_ACCENT = 'Ready for real momentum.';
 const BODY = [
-  'Real content, not filler. Built for every screen your customers hold.',
-  'Protected against bad data. Usable by everyone, however they browse.',
-  `The code. The domain. Every account. ${BODY_ACCENT}`,
+  'Clear experiences for every screen, every workflow, and every person who depends on them.',
+  'Thoughtful systems that make complex work easier to understand, use, and improve.',
+  `From the first interaction to the next opportunity: ${BODY_ACCENT}`,
 ];
 
 // Wraps BODY_ACCENT in the gradient treatment already used in the hero,

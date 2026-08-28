@@ -13,7 +13,7 @@ const REDUCED_SECONDS = 0.15;
 
 // Long enough that sweeping the pointer across the grid on the way somewhere
 // else does not open every card it crosses.
-const HOVER_INTENT_MS = 120;
+const HOVER_INTENT_MS = 200;
 
 // The preview opens under the pointer's original position, which is over the
 // grid card and therefore over the backdrop. Without a grace window the very
@@ -55,13 +55,14 @@ function useCanHover() {
  * A project preview that pops up into a wide overlay card.
  *
  * Opens on hover where there is a pointer and on tap where there is not, and
- * scales up into place. It dismisses on
- * pointer-out, on Escape, on scroll, on a backdrop click, and from its own
- * close button, so no single one of those is load-bearing.
+ * lifts into place. It dismisses on pointer-out, on Escape, on a backdrop
+ * click, and from its own close button, so no single one of those is
+ * load-bearing.
  *
  * Deliberately does NOT lock page scroll the way a form dialog would. This is a
- * preview the visitor glanced at, not a task they committed to, so scrolling
- * away is a dismissal rather than something to prevent.
+ * preview the visitor glanced at, not a task they committed to, so the page
+ * remains scrollable while it is open. In particular, Lenis momentum scroll
+ * must not dismiss a preview immediately after its hover intent resolves.
  */
 export default function ExpandableProjectCard({ project, priority = false, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -158,18 +159,10 @@ export default function ExpandableProjectCard({ project, priority = false, class
       }
     };
 
-    // Scrolling away is a dismissal. Guarded by the same grace window as the
-    // pointer, because opening can itself coincide with momentum scrolling.
-    const handleScroll = () => {
-      if (Date.now() - openedAt.current > DISMISS_GRACE_MS) close();
-    };
-
     document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('scroll', handleScroll);
       triggerEl?.focus();
     };
   }, [isOpen, close]);
@@ -207,8 +200,9 @@ export default function ExpandableProjectCard({ project, priority = false, class
         onMouseLeave={handleTriggerLeave}
         className={cn(
           'group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface text-left',
-          'transition-[transform,border-color] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]',
+          'transition-[transform,border-color,opacity] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]',
           'hover:-translate-y-1 hover:border-aurora-teal/40',
+          isOpen && 'opacity-0',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aurora-teal focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
           className
         )}
@@ -279,9 +273,10 @@ export default function ExpandableProjectCard({ project, priority = false, class
                       isPointerOnDialog.current = false;
                       if (canHover && Date.now() - openedAt.current > DISMISS_GRACE_MS) close();
                     }}
-                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96 }}
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
                     animate={{
                       opacity: 1,
+                      y: 0,
                       scale: 1,
                       transition: {
                         duration: reduced ? REDUCED_SECONDS : OPEN_SECONDS,
@@ -290,13 +285,14 @@ export default function ExpandableProjectCard({ project, priority = false, class
                     }}
                     exit={{
                       opacity: 0,
+                      y: reduced ? 0 : 12,
                       scale: reduced ? 1 : 0.98,
                       transition: {
                         duration: reduced ? REDUCED_SECONDS : CLOSE_SECONDS,
                         ease: EASE_EXPENSIVE,
                       },
                     }}
-                    className="pointer-events-auto flex max-h-[90vh] w-[min(94vw,64rem)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_40px_100px_-25px_rgba(0,0,0,0.8)]"
+                    className="pointer-events-auto flex max-h-[90vh] w-[min(94vw,64rem)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_40px_100px_-25px_rgba(0,0,0,0.8)] lg:min-h-[70vh]"
                   >
                     <div className="flex h-[34px] shrink-0 items-center gap-3 border-b border-line px-4">
                       <span aria-hidden="true" className="flex items-center gap-1.5">
@@ -321,7 +317,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
                         width eats the viewport and pushes the description below the fold,
                         so the preview needed scrolling to read. Two columns fit both. */}
                     <div className="min-h-0 flex-1 overflow-y-auto lg:flex lg:overflow-visible">
-                      <div className="aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-line lg:w-[58%] lg:border-b-0 lg:border-r">
+                      <div className="aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-line lg:w-[58%] lg:aspect-auto lg:border-b-0 lg:border-r">
                         {previewImage}
                       </div>
 

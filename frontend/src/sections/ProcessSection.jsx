@@ -21,15 +21,15 @@ const STEPS = [
   },
   {
     icon: Rocket,
-    title: 'Launch on your infrastructure',
+    title: 'Launch where it matters',
     description:
-      'The site or system goes live under your own domain, checked against how it will actually be used. Not a staged demo environment.',
+      'The site or system is prepared for its real operating environment and checked against how people will actually use it. Built for the work, not just the demo.',
   },
   {
     icon: MessagesSquare,
-    title: 'Stay reachable after launch',
+    title: 'Plan what comes next',
     description:
-      "We stay on for fixes and changes as the business's needs shift, once real people are using the system every day.",
+      "Once people are using the system, the next priorities become clearer. Post-launch support and improvements can be shaped around the business's evolving needs.",
   },
 ];
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, ArrowDown } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 import { buttonVariants } from '../components/ui/button';
 import HeroParallax from '../components/ui/hero-parallax';
@@ -40,15 +40,13 @@ function HeroHeader() {
           variants={item}
           className="mt-7 font-display text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-tightest text-text [text-wrap:balance]"
         >
-          We build the systems businesses{' '}
-          <span className="text-gradient">actually run on.</span>
+          Digital solutions built around{' '}
+          <span className="text-gradient">how your business works.</span>
         </motion.h1>
 
         <motion.p variants={item} className="mt-7 max-w-lg text-lg leading-relaxed text-text-dim">
-          Zelarion designs and builds production web systems for a law
-          firm, industrial suppliers, and member-based organisations —
-          in daily use by real staff and real customers, not sitting in a
-          portfolio as a demo.
+          Zelarion creates software, web apps, and internal systems that turn
+          complex business needs into clear, dependable digital experiences.
         </motion.p>
 
         <motion.div variants={item} className="mt-9 flex flex-wrap items-center gap-3">
@@ -56,10 +54,10 @@ function HeroHeader() {
             Start a project
             <ArrowUpRight size={18} strokeWidth={2.2} />
           </Link>
-          <a href="/#work" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
-            <ArrowDown size={18} />
-            See the work
-          </a>
+          <Link to="/work" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+            Explore solutions
+            <ArrowUpRight size={18} />
+          </Link>
         </motion.div>
       </motion.div>
     </div>

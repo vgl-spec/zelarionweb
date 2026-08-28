@@ -10,14 +10,13 @@ export default function WorkPage() {
       <section className="relative pb-8 pt-32 sm:pt-40">
         <div className="mx-auto max-w-content px-6">
           <Reveal>
-            <Eyebrow>Work</Eyebrow>
+            <Eyebrow>Solutions</Eyebrow>
             <h1 className="mt-5 max-w-3xl font-display text-5xl font-bold tracking-tightest text-text sm:text-6xl">
-              Six businesses, six systems in production.
+              Digital systems shaped around the way your business operates.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-text-dim">
-              A law firm, an industrial supplier, a packaging manufacturer, a wellness
-              organisation and two commerce platforms. Different sectors, the same standard
-              of build.
+              From customer-facing web apps to internal platforms, operational tools, and tailored
+              software, we build digital solutions for the needs in front of you.
             </p>
           </Reveal>
         </div>
@@ -29,7 +28,7 @@ export default function WorkPage() {
         <div className="mx-auto max-w-content px-6">
           <Reveal className="rounded-2xl border border-line bg-surface p-10 sm:p-14">
             <h2 className="font-display text-3xl font-bold tracking-tight text-text sm:text-4xl">
-              Have something similar in mind?
+              Have a business challenge in mind?
             </h2>
             <p className="mt-3 max-w-xl text-text-dim">
               Tell us what the business needs to do. We will tell you what it takes to build.

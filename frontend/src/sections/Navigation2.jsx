@@ -24,11 +24,11 @@ import {
 } from '../components/ui/navigation-menu';
 import { cn } from '../lib/utils';
 
-// Home, Work, and FAQ are each their own route (see App.js's ROUTES) -- rendered as
+// Home, Solutions, and FAQ are each their own route (see App.js's ROUTES) -- rendered as
 // router <Link>s so they work correctly from any page, including a hard refresh.
 const PRIMARY_LINKS = [
   { label: 'Home', to: '/' },
-  { label: 'Work', to: '/work' },
+  { label: 'Solutions', to: '/work' },
   { label: 'FAQ', to: '/faq' },
 ];
 
@@ -257,7 +257,7 @@ export default function Navigation2() {
               <NavLink to="/" label="Home" pathname={pathname} />
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavLink to="/work" label="Work" pathname={pathname} />
+              <NavLink to="/work" label="Solutions" pathname={pathname} />
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuTrigger>Services</NavigationMenuTrigger>
