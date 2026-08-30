@@ -7,6 +7,33 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-30 (domain move, shader coverage)
+
+- **A canvas can be exactly the right SIZE and still not COVER.** The contact shader's
+  canvas measured identical to its section at every width and across a resize -- every
+  geometric assertion passed -- yet the right-hand sixth of the page rendered near black.
+  The cause was inside the fragment shader: `uv` is normalised by the SHORT side, so a
+  2.6:1 section pushes the corners to |uv| = 2.8, past where the ring field still has
+  energy. Element bounds are not coverage. Measure emitted BRIGHTNESS across the frame
+  (crop a band, average per column) -- mean went 47 mid-frame to 10 at the right edge, which
+  is the number that actually described the complaint.
+
+- **A section shorter than the viewport leaves its decorative background looking cut.** The
+  contact form is about 1090px tall; on a tall or zoomed-out window the section ended above
+  the fold and the backdrop stopped with it, leaving flat black between it and the footer.
+  Any section carrying a full-bleed background needs a min-height, not just padding.
+
+- **`site:<domain>` is the first thing to check before touching SEO.** zelarion.tech
+  returned ZERO indexed pages, so no amount of meta-tag work could have made it appear in
+  results: Google had never crawled it. Establish whether a site is indexed at all before
+  attributing invisibility to markup.
+
+- **A hardcoded canonical domain spreads further than it looks.** Moving from the Vercel
+  deployment URL to the real domain touched 18 occurrences across index.html, robots.txt,
+  sitemap.xml and the Seo component, plus the rendered share card, which prints the domain
+  as artwork and had to be regenerated. Keep a single constant per layer and grep for the
+  literal before assuming it is contained.
+
 ## 2026-08-30 (SEO, mobile scale, money input)
 
 - **Google does not render SVG favicons.** Its supported formats are BMP, GIF, ICO, PNG,

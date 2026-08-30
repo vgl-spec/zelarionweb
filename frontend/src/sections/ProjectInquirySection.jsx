@@ -366,7 +366,13 @@ export default function ProjectInquirySection({ onSubmit, className }) {
   };
 
   return (
-    <section id="contact" className={cn('relative overflow-hidden py-24 md:py-32', className)} data-testid="project-inquiry-section">
+    <section id="contact" // min-height so the backdrop always reaches the fold: the form is about 1090px tall,
+      // so on a tall or zoomed-out window the section ended above the viewport bottom and
+      // left a band of flat black between it and the footer. 4rem is the sticky header.
+      className={cn(
+        'relative min-h-[calc(100vh-4rem)] overflow-hidden py-24 md:py-32',
+        className
+      )} data-testid="project-inquiry-section">
       {/* Decorative backdrop only: absolutely positioned behind the content well
           (z-0), never in its stacking context, and pointer-events are killed on
           it and everything it renders -- @react-three/fiber's own canvas resets

@@ -27,6 +27,15 @@ const FRAGMENT_SHADER = /* glsl */ `
 
   void main(void) {
     vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+
+    // The ring field is generated around the centre and runs out of energy past roughly
+    // |uv| = 2. Normalising by the SHORT side means a wide viewport pushes the corners
+    // well beyond that: measured across a 2870x1094 section, mean brightness peaked at 47
+    // mid-frame and fell to 10 in the right-hand sixth, which reads as the background
+    // being cut off. Zooming the field out by the corner distance keeps the whole surface
+    // covered at any aspect, and is a no-op on the roughly square ones where reach is 1.
+    float reach = max(1.0, length(resolution) / min(resolution.x, resolution.y) * 0.62);
+    uv /= reach;
     float t = time * 0.05;
     float lineWidth = 0.002;
 
