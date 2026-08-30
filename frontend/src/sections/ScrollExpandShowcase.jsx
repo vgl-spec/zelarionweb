@@ -1,6 +1,24 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, useMotionTemplate } from 'framer-motion';
+import { registerSnapStops } from '../lib/scrollStore';
 import { prefersReducedMotion } from '../lib/utils';
+
+// The choreography's keyframes, in `scrollYProgress`. Named because the snap stops below
+// have to be exactly these values: parking anywhere else leaves the image frozen
+// mid-expansion or the copy caught half-faded, which is the whole thing snapping exists
+// to prevent. Change one of these and the stop it anchors moves with it.
+const EXPAND_END = 0.55; // media has reached full bleed
+const TITLE_GONE = 0.62; // split headline has finished fading out
+const CONTENT_END = 0.82; // expanded copy has finished revealing
+
+// The two points where the section actually reads as finished: the card, and the
+// full-bleed image with the copy fully in. TITLE_GONE is deliberately not among them —
+// the headline has faded and the body has not begun, so it is a full screen with nothing
+// on it, and parking a viewer there is the very thing snapping exists to prevent. One
+// gesture therefore plays the expansion and the reveal as a single move. Nothing animates
+// between CONTENT_END and the section's end either, so a stop at 1 would be a step that
+// changes nothing; the remaining scroll simply carries on into the next section.
+const SNAP_PROGRESS = [0, CONTENT_END];
 
 // An abstract 3D render (white wireframe cubes connected in a lattice), not a
 // screenshot of any client build. It carries no readable text of its own, so
@@ -79,10 +97,25 @@ export default function ScrollExpandShowcase() {
     offset: ['start start', 'end end'],
   });
 
+  // `offset: ['start start', 'end end']` pins the sticky child for one viewport, so
+  // progress runs over (section height − viewport height), not the section height.
+  useEffect(
+    () =>
+      registerSnapStops('scroll-expand-showcase', () => {
+        const el = sectionRef.current;
+        if (!el) return [];
+        const top = window.scrollY + el.getBoundingClientRect().top;
+        const range = el.offsetHeight - window.innerHeight;
+        if (range <= 0) return [];
+        return SNAP_PROGRESS.map((progress) => top + range * progress);
+      }),
+    []
+  );
+
   // media grows from a centered card to full-bleed
-  const wv = useTransform(scrollYProgress, [0, 0.55], [44, 100]);
-  const hv = useTransform(scrollYProgress, [0, 0.55], [56, 100]);
-  const radius = useTransform(scrollYProgress, [0, 0.55], [24, 0]);
+  const wv = useTransform(scrollYProgress, [0, EXPAND_END], [44, 100]);
+  const hv = useTransform(scrollYProgress, [0, EXPAND_END], [56, 100]);
+  const radius = useTransform(scrollYProgress, [0, EXPAND_END], [24, 0]);
   const width = useMotionTemplate`${wv}vw`;
   const height = useMotionTemplate`${hv}vh`;
   const borderRadius = useMotionTemplate`${radius}px`;
@@ -93,16 +126,16 @@ export default function ScrollExpandShowcase() {
   // per side. Anything larger slides them into the clipped edge of the sticky
   // container and cuts the words mid-letter. Below `sm` the halves stack (see
   // the h2), which buys back the room the 2rem font floor takes away.
-  const leftX = useTransform(scrollYProgress, [0, 0.55], ['0vw', '-7vw']);
-  const rightX = useTransform(scrollYProgress, [0, 0.55], ['0vw', '7vw']);
-  const titleOpacity = useTransform(scrollYProgress, [0.4, 0.62], [1, 0]);
-  const eyebrowOpacity = useTransform(scrollYProgress, [0.35, 0.55], [1, 0]);
-  const mediaBrightness = useTransform(scrollYProgress, [0, 0.55], [0.65, 0.5]);
+  const leftX = useTransform(scrollYProgress, [0, EXPAND_END], ['0vw', '-7vw']);
+  const rightX = useTransform(scrollYProgress, [0, EXPAND_END], ['0vw', '7vw']);
+  const titleOpacity = useTransform(scrollYProgress, [0.4, TITLE_GONE], [1, 0]);
+  const eyebrowOpacity = useTransform(scrollYProgress, [0.35, EXPAND_END], [1, 0]);
+  const mediaBrightness = useTransform(scrollYProgress, [0, EXPAND_END], [0.65, 0.5]);
   const overlayFilter = useMotionTemplate`brightness(${mediaBrightness})`;
 
   // expanded copy reveals after expansion completes
-  const contentOpacity = useTransform(scrollYProgress, [0.62, 0.82], [0, 1]);
-  const contentY = useTransform(scrollYProgress, [0.62, 0.82], [40, 0]);
+  const contentOpacity = useTransform(scrollYProgress, [TITLE_GONE, CONTENT_END], [0, 1]);
+  const contentY = useTransform(scrollYProgress, [TITLE_GONE, CONTENT_END], [40, 0]);
 
   if (prefersReducedMotion()) {
     return <StaticShowcase />;

@@ -11,9 +11,10 @@ const OPEN_SECONDS = 0.4;
 const CLOSE_SECONDS = 0.26;
 const REDUCED_SECONDS = 0.15;
 
-// Long enough that sweeping the pointer across the grid on the way somewhere
-// else does not open every card it crosses.
-const HOVER_INTENT_MS = 200;
+// Long enough that the preview is a deliberate act. At 200ms it fired on any tile
+// the pointer happened to be resting over while the page scrolled past, which is the
+// opposite of letting someone study the screenshots.
+const HOVER_INTENT_MS = 420;
 
 // The preview opens under the pointer's original position, which is over the
 // grid card and therefore over the backdrop. Without a grace window the very
@@ -226,14 +227,18 @@ export default function ExpandableProjectCard({ project, priority = false, class
           <span className="font-mono text-[11px] text-text-dim">{project.domain}</span>
         </span>
 
+        {/* The screenshots are all 1200x675, so a 16:9 box shows every one of them whole:
+            no crop, and every tile in the grid is exactly the same shape. */}
         <span className="block aspect-[16/9] overflow-hidden">{previewImage}</span>
 
-        <span className="flex flex-1 flex-col gap-3 p-7">
-          <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-dim">
-            {project.sector}
-          </span>
-          <span className="font-display text-xl font-bold tracking-tight text-text sm:text-2xl">
+        {/* Deliberately quiet, and deliberately below the image. The screenshot is what
+            the visitor is here to look at; this is the caption on it. */}
+        <span className="flex flex-1 items-baseline justify-between gap-4 px-5 py-4">
+          <span className="font-display text-lg font-bold tracking-tight text-text">
             {project.name}
+          </span>
+          <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-text-dim">
+            {project.sector}
           </span>
         </span>
       </button>
@@ -292,7 +297,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
                         ease: EASE_EXPENSIVE,
                       },
                     }}
-                    className="pointer-events-auto flex max-h-[90vh] w-[min(94vw,64rem)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_40px_100px_-25px_rgba(0,0,0,0.8)] lg:min-h-[70vh]"
+                    className="pointer-events-auto flex max-h-[90vh] w-[min(94vw,72rem)] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_40px_100px_-25px_rgba(0,0,0,0.8)]"
                   >
                     <div className="flex h-[34px] shrink-0 items-center gap-3 border-b border-line px-4">
                       <span aria-hidden="true" className="flex items-center gap-1.5">
@@ -315,13 +320,16 @@ export default function ExpandableProjectCard({ project, priority = false, class
 
                     {/* Side by side once there is room. Stacked, a 16:9 screenshot at this
                         width eats the viewport and pushes the description below the fold,
-                        so the preview needed scrolling to read. Two columns fit both. */}
-                    <div className="min-h-0 flex-1 overflow-y-auto lg:flex lg:overflow-visible">
-                      <div className="aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-line lg:w-[58%] lg:aspect-auto lg:border-b-0 lg:border-r">
+                        so the preview needed scrolling to read. Two columns fit both.
+                        The media column keeps its 16:9 ratio at every width -- letting it
+                        stretch to the dialog's height cropped the screenshot, which is the
+                        one thing this preview exists to show. */}
+                    <div className="min-h-0 flex-1 overflow-y-auto lg:flex lg:items-stretch lg:overflow-visible">
+                      <div className="aspect-[16/9] w-full shrink-0 self-start overflow-hidden border-b border-line lg:w-[62%] lg:border-b-0 lg:border-r">
                         {previewImage}
                       </div>
 
-                      <div className="flex flex-col justify-center p-7 sm:p-9">
+                      <div className="flex flex-col justify-center p-7 sm:p-8">
                         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-dim">
                           {project.sector}
                         </p>

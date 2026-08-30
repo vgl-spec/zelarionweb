@@ -7,9 +7,13 @@ import { PROJECTS } from '../data/projects';
 import { cn } from '../lib/utils';
 
 /**
- * The solutions grid. `limit` lets the home page show a subset while /work shows the full set
- * from the same data source. Cards are screenshot previews that expand to their full
- * detail on hover, tap or focus — there is no click-through to the client sites.
+ * The solutions grid. `limit` lets the home page show a subset while /work shows the full
+ * set from the same data source.
+ *
+ * Two columns, not three: at three across, a 1200px-wide landing-page screenshot renders
+ * about 380px wide and every site collapses into the same dark-hero smudge. The screenshot
+ * is the portfolio piece here, so it gets the width it needs to be read as one. Cards
+ * expand to their full detail on hover, tap or focus; nothing links out to a client site.
  */
 export default function WorkShowcase({ limit, showViewAll = false, className }) {
   const projects = limit ? PROJECTS.slice(0, limit) : PROJECTS;
@@ -24,16 +28,17 @@ export default function WorkShowcase({ limit, showViewAll = false, className }) 
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-text-dim">
             Explore a selection of digital solutions designed to support customer experiences,
-            business operations, and the teams behind them. Hover or tap a card to learn more.
+            business operations, and the teams behind them. Every tile is a real screenshot of
+            the live landing page. Hover or tap one to learn more.
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
           {projects.map((project, i) => (
             <Reveal key={project.id} y={48} delay={i * 0.08} className="flex">
-              {/* The first row is above the fold on /work, so those screenshots are
+              {/* The first row is above the fold on /work, so those two screenshots are
                   fetched eagerly; the rest stay lazy. */}
-              <ExpandableProjectCard project={project} priority={i < 3} className="w-full" />
+              <ExpandableProjectCard project={project} priority={i < 2} className="w-full" />
             </Reveal>
           ))}
         </div>

@@ -25,7 +25,7 @@ const SITE = {
     // `phone` is the grouped form a human reads. Keep them in sync.
     phone: '+63 994 332 8595',
     phoneDial: '+639943328595',
-    addressShort: 'Philippines — working with clients internationally',
+    addressShort: 'Philippines, working with clients internationally',
   },
 };
 

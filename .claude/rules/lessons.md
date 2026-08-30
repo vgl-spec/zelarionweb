@@ -7,6 +7,59 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-30
+
+- **Wheel input is DISCARDED while a Lenis programmatic `scrollTo` is running.** A scroll
+  snapper built the obvious way -- wait for the page to go idle, then tween to the nearest
+  stop -- chains Lenis's own ~1.15s inertia in FRONT of the snap, so one gesture took about
+  2.5 seconds end to end, and any second gesture that arrived during the tween vanished. An
+  event trace (`scroll` + `wheel` with timestamps, runs of `scroll` collapsed) showed it
+  plainly: `W @2615ms y=740` followed by 45 scroll events all reading 740. Fix: react on the
+  `wheel` event itself and re-target Lenis immediately. No `preventDefault` is needed or
+  wanted -- Lenis owns the position for the tween's duration and swallows the delta for you,
+  and preventDefault would not have stopped Lenis anyway (it registers its own listener
+  first, so `stopImmediatePropagation` from a later-mounted component never fires in time).
+
+- **A `vh`-multiple height on a container whose content is sized in px can only be right at
+  one window height.** `HeroParallax`'s `h-[300vh]` ran 656px past its last card row at
+  1440x900, so the middle of the hero scroll was a completely blank screen -- the client's
+  review called it out as "very big empty space for what". Card rows are `h-96` etc, fixed
+  px, so the natural content height is viewport-independent; the container's was not. Fix:
+  drop the fixed height, let it size to content, and add the bottom padding the `+160px`
+  settle needs so `overflow-hidden` cannot clip the last row.
+
+- **A snap stop has to be a state with something ON it.** `ScrollExpandShowcase` progress
+  0.62 is "headline finished fading out, body copy has not started fading in" -- a full
+  screen of image and no words. It is a legitimate frame to pass THROUGH and a terrible one
+  to park on. Enumerate the keyframes and ask what is readable at each before making it a
+  resting position; the answer collapsed four showcase stops to two.
+
+- **A file-size outlier in a batch of screenshots is the cheapest blank-frame detector
+  there is.** Sixteen frames at 250-800 KB and one at 40 KB: the 40 KB one was the empty
+  hero screen above. Same tell as the 0-byte ffmpeg outputs and the 2.8 KB 404 page from
+  earlier sessions. `ls -l | awk '{print $5, $9}'` before opening anything.
+
+- **Once a scroll snapper is live you cannot screenshot a mid-animation frame with
+  `window.scrollTo`** -- the idle park drags you back to the nearest stop and you get a
+  byte-identical copy of the stop frame (that is how it was noticed: two files with exactly
+  equal sizes). Fire a real gesture and sample DURING the glide instead. Related: plain
+  `window.scrollBy` proves nothing on this site at all, because Lenis rewrites the scroll
+  position every frame and simply undoes it -- a "touch scrolling works" test built on
+  `scrollBy` passed while testing nothing. Use CDP `Input.dispatchTouchEvent` for touch.
+
+- **Never background a compound command whose first half has to succeed.** A `python ... ;
+  cd frontend && build` run with `run_in_background` swallowed a `ValueError: substring not
+  found` from the patch step; the build still exited 0, the test file still held its OLD
+  assertions, and the resulting failure looked exactly like a product bug (it named a snap
+  stop that had just been deleted). Ten minutes went into debugging working code. Check the
+  task output for `Traceback` before believing a test result.
+
+- **`\n` inside a bash heredoc that feeds a Python string can arrive as a real newline.**
+  A generated `console.log('\n== header ==')` came out split across two lines and the
+  whole `.cjs` died with `SyntaxError: Invalid or unexpected token`. When generating code
+  through two layers of quoting, run the output file before trusting it -- and prefer
+  `chr(92)` over stacked backslashes.
+
 ## 2026-08-28
 
 - **Hover previews must not treat ambient scroll as a dismissal signal when Lenis owns momentum.**
