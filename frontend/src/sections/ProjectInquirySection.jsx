@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useId, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useId, useRef, useState } from 'react';
 import {
   User,
   Mail,
@@ -56,6 +56,10 @@ const DEFAULT_CURRENCY = 'PHP';
 // amount here surfaces it as an inline field error instead of a round-trip
 // to the server for something the client already knows is invalid.
 const BUDGET_AMOUNT_MAX = 100_000_000;
+// A ceiling on how many digits can be TYPED, which is not the same as the value cap above:
+// validate() still reports anything over BUDGET_AMOUNT_MAX as a field error. This only
+// stops a paste from pushing the number past exact integer range.
+const BUDGET_DIGITS_MAX = 12;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_MAX = 120;
@@ -213,6 +217,27 @@ function FieldIcon({ icon: Icon }) {
   return <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />;
 }
 
+// The amount is held in state as bare digits and only ever GROUPED for display, so
+// validation and the wire payload keep reading a plain number and never have to strip
+// separators back out.
+function groupDigits(digits) {
+  return digits ? Number(digits).toLocaleString('en-US') : '';
+}
+
+// Where the caret belongs after regrouping. Counting digits rather than characters is the
+// whole trick: the separators around the caret are rewritten on every keystroke, so a
+// character offset drifts, and typing into the middle of a grouped number throws the caret
+// to the end.
+function caretAfterDigits(formatted, digitsBefore) {
+  if (digitsBefore <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < formatted.length; i += 1) {
+    if (formatted[i] >= '0' && formatted[i] <= '9') seen += 1;
+    if (seen === digitsBefore) return i + 1;
+  }
+  return formatted.length;
+}
+
 // The full inquiry form the site's "Contact us" CTA leads to. `onSubmit`,
 // when supplied, replaces the network call so this component can be tested
 // without a live backend.
@@ -253,13 +278,31 @@ export default function ProjectInquirySection({ onSubmit, className }) {
     if (fieldErrors.timeline) setFieldErrors((errs) => ({ ...errs, timeline: undefined }));
   };
 
-  // Live preview only -- this never writes back into the amount input's own
-  // value, which is what would fight the caret while the user is typing.
-  const amountHint = useMemo(() => {
-    const amountNum = Number(form.budgetAmount.trim());
-    if (!form.budgetAmount.trim() || !Number.isFinite(amountNum)) return null;
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: form.budgetCurrency }).format(amountNum);
-  }, [form.budgetAmount, form.budgetCurrency]);
+  // Anything that is not a digit is dropped rather than rejected, so the field simply
+  // cannot hold a letter, a symbol, or a stray separator however it arrives -- typed,
+  // pasted, or autofilled.
+  const handleBudgetAmountChange = (event) => {
+    const input = event.target;
+    const caret = input.selectionStart ?? input.value.length;
+    const digitsBeforeCaret = input.value.slice(0, caret).replace(/\D/g, '').length;
+
+    const digits = input.value
+      .replace(/\D/g, '')
+      .replace(/^0+(?=\d)/, '')
+      .slice(0, BUDGET_DIGITS_MAX);
+
+    setForm((f) => ({ ...f, budgetAmount: digits }));
+    if (fieldErrors.budgetAmount) {
+      setFieldErrors((errs) => ({ ...errs, budgetAmount: undefined }));
+    }
+
+    // React rewrites the input's value on the next commit, which resets the caret to the
+    // end. Restore it afterwards, by digit position rather than character position.
+    const restoreTo = caretAfterDigits(groupDigits(digits), digitsBeforeCaret);
+    requestAnimationFrame(() => {
+      if (document.activeElement === input) input.setSelectionRange(restoreTo, restoreTo);
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -526,34 +569,36 @@ export default function ProjectInquirySection({ onSubmit, className }) {
 
                   <div>
                     <Label htmlFor={`${uid}-budgetAmount`}>Budget Amount</Label>
-                    <Input
-                      id={`${uid}-budgetAmount`}
-                      type="text"
-                      inputMode="decimal"
-                      className="mt-1.5"
-                      value={form.budgetAmount}
-                      onChange={setField('budgetAmount')}
-                      placeholder="e.g. 150000"
-                      aria-invalid={Boolean(fieldErrors.budgetAmount)}
-                      aria-describedby={
-                        fieldErrors.budgetAmount
-                          ? `${uid}-budgetAmount-error`
-                          : amountHint
-                            ? `${uid}-budgetAmount-hint`
-                            : undefined
-                      }
-                      data-testid="inquiry-input-budgetAmount"
-                    />
-                    {fieldErrors.budgetAmount ? (
+                    <div className="relative mt-1.5">
+                      {/* The chosen currency sits in the field itself rather than only in
+                          the select above it, so the number is never read without its
+                          unit. aria-hidden because the label and the currency select
+                          already name it for a screen reader. */}
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs tracking-wide text-muted-foreground"
+                      >
+                        {form.budgetCurrency}
+                      </span>
+                      <Input
+                        id={`${uid}-budgetAmount`}
+                        type="text"
+                        inputMode="numeric"
+                        className="pl-14"
+                        value={groupDigits(form.budgetAmount)}
+                        onChange={handleBudgetAmountChange}
+                        placeholder="10,000"
+                        aria-invalid={Boolean(fieldErrors.budgetAmount)}
+                        aria-describedby={
+                          fieldErrors.budgetAmount ? `${uid}-budgetAmount-error` : undefined
+                        }
+                        data-testid="inquiry-input-budgetAmount"
+                      />
+                    </div>
+                    {fieldErrors.budgetAmount && (
                       <p id={`${uid}-budgetAmount-error`} className="mt-1.5 text-xs text-destructive">
                         {fieldErrors.budgetAmount}
                       </p>
-                    ) : (
-                      amountHint && (
-                        <p id={`${uid}-budgetAmount-hint`} className="mt-1.5 text-xs text-muted-foreground">
-                          {amountHint}
-                        </p>
-                      )
                     )}
                   </div>
 
@@ -696,22 +741,6 @@ export default function ProjectInquirySection({ onSubmit, className }) {
                   </p>
                 </CardContent>
               </Card>
-
-              {/* Inside this column, not beside it: the grid is five columns wide and the
-                  form and this aside already claim all five, so a third child wraps onto a
-                  second row and strands itself underneath the form. Hidden below `lg`,
-                  where this column stacks under the form and the photograph would only
-                  push the footer further away. Decorative, so the alt is empty. */}
-              <img
-                src="/assets/photos/contact-skyline.webp"
-                alt=""
-                aria-hidden="true"
-                width="900"
-                height="1350"
-                loading="lazy"
-                decoding="async"
-                className="hidden h-64 w-full rounded-xl border border-line object-cover opacity-80 lg:block"
-              />
             </div>
           </div>
         </div>

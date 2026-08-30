@@ -55,7 +55,7 @@ export default function ServicesSection() {
       <div className="mx-auto max-w-content px-6">
         <Reveal className="max-w-2xl">
           <Eyebrow>What we build</Eyebrow>
-          <h2 className="mt-6 font-display text-[clamp(2rem,4.5vw,3.5rem)] font-bold leading-[1.02] tracking-tightest text-text">
+          <h2 className="mt-6 font-display text-h2 font-bold text-text">
             Software built around how the business actually works.
           </h2>
         </Reveal>
@@ -94,11 +94,11 @@ export default function ServicesSection() {
               <div className="max-w-2xl">
                 <div className="flex items-center gap-4">
                   <s.icon size={22} className="shrink-0 text-aurora-teal" strokeWidth={1.6} />
-                  <h3 className="font-display text-xl font-bold leading-tight tracking-tight text-text">
+                  <h3 className="font-display text-h3 font-bold text-text">
                     {s.title}
                   </h3>
                 </div>
-                <p className="mt-4 text-[15px] leading-relaxed text-text-dim md:text-base">
+                <p className="mt-4 text-body text-text-dim">
                   {s.description}
                 </p>
               </div>

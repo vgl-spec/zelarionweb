@@ -454,7 +454,7 @@ export default function CinematicFooter() {
                     key={item.href}
                     as={Link}
                     to={item.href}
-                    className="footer-glass-pill cf-text-dim rounded-full px-6 py-3 text-xs font-medium md:text-sm"
+                    className="footer-glass-pill cf-text-dim inline-flex min-h-[44px] items-center rounded-full px-6 py-3 text-xs font-medium md:text-sm"
                   >
                     {item.label}
                   </MagneticButton>

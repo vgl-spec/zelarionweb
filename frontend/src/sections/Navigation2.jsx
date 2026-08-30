@@ -281,7 +281,7 @@ export default function Navigation2() {
 
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="px-2.5 lg:hidden" aria-label="Open menu">
+            <Button variant="ghost" size="sm" className="h-11 w-11 px-0 lg:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -298,7 +298,7 @@ export default function Navigation2() {
                 <SheetClose asChild key={link.label}>
                   <Link
                     to={link.to}
-                    className="min-h-[44px] rounded-md px-3 py-2.5 text-base text-foreground transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-accent"
+                    className="flex min-h-[44px] items-center rounded-md px-3 py-2.5 text-base text-foreground transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-accent"
                   >
                     {link.label}
                   </Link>

@@ -29,7 +29,7 @@ export default function Reveal({
 export function Eyebrow({ children, className = '' }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.2em] text-text-dim ${className}`}
+      className={`inline-flex items-center gap-2 text-eyebrow font-medium uppercase text-text-dim ${className}`}
     >
       <span className="h-px w-6 bg-gradient-to-r from-aurora-teal to-transparent" />
       {children}

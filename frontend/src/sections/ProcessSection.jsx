@@ -51,7 +51,7 @@ export default function ProcessSection() {
       <div className="mx-auto max-w-content px-6">
         <Reveal className="max-w-2xl">
           <Eyebrow>How an engagement runs</Eyebrow>
-          <h2 className="mt-6 font-display text-[clamp(2rem,4.5vw,3.5rem)] font-bold leading-[1.02] tracking-tightest text-text">
+          <h2 className="mt-6 font-display text-h2 font-bold text-text">
             Four steps, start to finish.
           </h2>
         </Reveal>
@@ -82,16 +82,16 @@ export default function ProcessSection() {
               />
 
               <div className="mt-6 flex items-center gap-3">
-                <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-white/[0.03] text-[13px] text-text-dim">
+                <span className="tnum flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-white/[0.03] text-meta text-text-dim">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <s.icon size={18} className="shrink-0 text-aurora-teal" strokeWidth={1.8} />
               </div>
 
-              <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-text">
+              <h3 className="mt-4 font-display text-h3 font-bold text-text">
                 {s.title}
               </h3>
-              <p className="mt-2.5 text-[15px] leading-relaxed text-text-dim">
+              <p className="mt-2.5 text-body text-text-dim">
                 {s.description}
               </p>
             </Reveal>

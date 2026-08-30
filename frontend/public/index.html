@@ -4,13 +4,70 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#05070A" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
-    <!-- iOS ignores SVG icons, so it falls back to the raster mark. -->
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/assets/logo-mark-192.png" />
+
+    <!--
+      Everything in this head is STATIC on purpose. Facebook's, Messenger's and LinkedIn's
+      crawlers do not execute JavaScript, so anything React writes at runtime is invisible
+      to them. This app is a single-page app served from one index.html for every route, so
+      these tags are what every shared link renders with. src/components/Seo.jsx refines
+      title, description and canonical per route for Google, which does run JS.
+    -->
+    <title>Zelarion — Software and design studio in the Philippines</title>
     <meta
       name="description"
-      content="Zelarion runs your entire test suite on every commit and returns a pass/fail verdict in 90 seconds. Ship with proof, not hope."
+      content="Zelarion designs and builds websites, commerce platforms and internal systems for businesses in the Philippines and abroad. Real systems in daily use, not demos."
     />
+    <link rel="canonical" href="https://zelarionweb.vercel.app/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="author" content="Zelarion" />
+
+    <!--
+      Google Search does not render SVG favicons: its supported formats are BMP, GIF, ICO,
+      PNG, JPEG, PPM and TIFF. The PNGs below are what can actually appear beside a search
+      result; the SVG stays first because browsers prefer it in the tab, where it is sharper.
+      Google asks for a square icon of at least 48px at a URL that does not change.
+    -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon-48.png" sizes="48x48" type="image/png" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon-96.png" sizes="96x96" type="image/png" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon-192.png" sizes="192x192" type="image/png" />
+    <!-- iOS ignores SVG icons, so it falls back to the raster mark. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/site.webmanifest" />
+
+    <!-- Open Graph: what Messenger, Facebook, LinkedIn, Slack and Discord render.
+         width/height are declared so the preview draws on the FIRST share instead of
+         after the crawler has fetched and measured the image. -->
+    <meta property="og:site_name" content="Zelarion" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_PH" />
+    <meta property="og:url" content="https://zelarionweb.vercel.app/" />
+    <meta property="og:title" content="Zelarion — Software and design studio in the Philippines" />
+    <meta
+      property="og:description"
+      content="We design and build websites, commerce platforms and internal systems for businesses in the Philippines and abroad. Real systems in daily use, not demos."
+    />
+    <meta property="og:image" content="https://zelarionweb.vercel.app/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Zelarion. Digital solutions built around how your business works."
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Zelarion — Software and design studio in the Philippines" />
+    <meta
+      name="twitter:description"
+      content="We design and build websites, commerce platforms and internal systems for businesses in the Philippines and abroad."
+    />
+    <meta name="twitter:image" content="https://zelarionweb.vercel.app/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Zelarion. Digital solutions built around how your business works."
+    />
+
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,7 +79,49 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <title>Zelarion — Ship with proof, not hope.</title>
+
+    <!--
+      Organization and WebSite, the two types Google actually uses here: the first can
+      feed a knowledge panel, the second declares the canonical site name so results are
+      labelled "Zelarion" rather than the bare domain. No claims are made that the site
+      itself does not already make.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://zelarionweb.vercel.app/#organization",
+            "name": "Zelarion",
+            "url": "https://zelarionweb.vercel.app/",
+            "logo": "https://zelarionweb.vercel.app/favicon-192.png",
+            "image": "https://zelarionweb.vercel.app/og-image.png",
+            "description": "Software and design studio building websites, commerce platforms and internal systems.",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "PH"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "sales",
+              "email": "bautista.vergel.agripa@gmail.com",
+              "telephone": "+639943328595",
+              "areaServed": "Worldwide",
+              "availableLanguage": ["en", "fil"]
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://zelarionweb.vercel.app/#website",
+            "url": "https://zelarionweb.vercel.app/",
+            "name": "Zelarion",
+            "publisher": { "@id": "https://zelarionweb.vercel.app/#organization" },
+            "inLanguage": "en"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

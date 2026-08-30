@@ -4,6 +4,7 @@ import './App.css';
 import SmoothScroll from './components/SmoothScroll';
 import ScrollToHash from './components/ScrollToHash';
 import ScrollSnap from './components/ScrollSnap';
+import Seo from './components/Seo';
 import Navigation2 from './sections/Navigation2';
 import HeroStudio from './sections/HeroStudio';
 import CredibilityBar from './sections/CredibilityBar';
@@ -75,12 +76,47 @@ function HomePage() {
   );
 }
 
+// Titles are written to survive truncation in a search result: the distinguishing words
+// come first and the brand is appended by <Seo>. Descriptions are held near 150 characters,
+// which is roughly what Google renders before it cuts, and each one describes THAT page
+// rather than repeating the site's pitch five times.
 const ROUTES = [
-  { path: '/', element: <HomePage />, withTravellingCore: true },
-  { path: '/work', element: <WorkPage /> },
-  { path: '/services', element: <ServicesPage /> },
-  { path: '/faq', element: <FaqPage /> },
-  { path: '/contact', element: <ProjectInquirySection /> },
+  {
+    path: '/',
+    element: <HomePage />,
+    withTravellingCore: true,
+    title: 'Zelarion — Software and design studio in the Philippines',
+    description:
+      'Zelarion designs and builds websites, commerce platforms and internal systems for businesses in the Philippines and abroad. Real systems in daily use, not demos.',
+  },
+  {
+    path: '/work',
+    element: <WorkPage />,
+    title: 'Solutions we have built',
+    description:
+      'Live systems built for a law firm, industrial suppliers, a packaging manufacturer, a wellness organisation and two commerce platforms. Every preview is the real site.',
+  },
+  {
+    path: '/services',
+    element: <ServicesPage />,
+    title: 'What we build',
+    description:
+      'Websites that make the case for you, commerce and distribution systems, internal platforms and member systems, and ongoing support after launch.',
+  },
+  {
+    path: '/faq',
+    element: <FaqPage />,
+    title: 'Frequently asked questions',
+    description:
+      'How an engagement runs, what happens after launch, and what you own at the end. Straight answers about working with a small studio.',
+  },
+  {
+    path: '/contact',
+    element: <ProjectInquirySection />,
+    title: 'Start a project',
+    description:
+      'Tell us what you are trying to run better. We reply within one business day with next steps, not a sales deck.',
+  },
 ];
 
 function App() {
@@ -93,12 +129,15 @@ function App() {
           first mount and never fire the scroll-to-top fallback. */}
       <ScrollToHash />
       <Routes>
-        {ROUTES.map(({ path, element, withTravellingCore }) => (
+        {ROUTES.map(({ path, element, withTravellingCore, title, description }) => (
           <Route
             key={path}
             path={path}
             element={
-              <SiteShell withTravellingCore={withTravellingCore}>{element}</SiteShell>
+              <SiteShell withTravellingCore={withTravellingCore}>
+                <Seo title={title} description={description} path={path} />
+                {element}
+              </SiteShell>
             }
           />
         ))}

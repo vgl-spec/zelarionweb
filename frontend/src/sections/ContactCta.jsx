@@ -58,7 +58,7 @@ export default function ContactCta() {
         </Reveal>
 
         <Reveal delay={0.16}>
-          <p className="mt-8 max-w-xl text-lg leading-relaxed text-text-dim">
+          <p className="mt-8 max-w-xl text-body-lg text-text-dim">
             Tell us what you are trying to run better. We will tell you what it takes to
             build it, and what it will cost, before anyone commits to anything.
           </p>
