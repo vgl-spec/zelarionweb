@@ -2,19 +2,20 @@ import { useEffect } from 'react';
 import { collectSnapStops, scrollTo } from '../lib/scrollStore';
 import { prefersReducedMotion } from '../lib/utils';
 
-// A wheel gesture is a burst of events, not one. Anything arriving within this of the
-// previous wheel belongs to the flick already handled — trackpad momentum can keep firing
-// for a second after the fingers lift, and each of those must not count as a new step.
+// A gesture is a burst of events, not one. Anything arriving within this of the previous
+// wheel belongs to the flick already handled — trackpad momentum keeps firing for about a
+// second after the fingers lift, and none of that is a new instruction.
 const GESTURE_GAP_MS = 160;
 
-// How far one gesture has to carry before it counts as a step. Deliberately small: any
-// real scroll clears it within a frame or two, while a stray twitch of the trackpad does
-// not move the page a whole screen. It is a floor, not a scale — a gentle wheel and a
-// hard one both advance exactly one stop, which is the point.
+// How far a gesture has to carry before it commits to a step. Deliberately small: a real
+// scroll clears it within a frame or two, while a stray twitch does not move the page a
+// whole screen. It is a floor, not a scale — a gentle wheel and a hard one both advance
+// exactly one stop, which is the entire point.
 const WHEEL_THRESHOLD_PX = 24;
+const TOUCH_THRESHOLD_PX = 40;
 
-// How long the page must be still before the fallback park runs. Touch and keyboard
-// scrolling never reach the wheel handler, so they are caught here once they settle.
+// How long the page must be still before the fallback park runs. Keyboard and scrollbar
+// dragging are not intercepted, so they are caught here once they settle.
 const IDLE_MS = 140;
 
 // Close enough to a stop to call it parked; absorbs sub-pixel rounding.
@@ -35,24 +36,26 @@ function nearestStop(stops, y) {
 }
 
 /**
- * Parks the home page on discrete scroll stops across its two scroll-driven sections.
+ * Turns the home page's two scroll-driven sections into stepped scrolling.
  *
  * Those sections publish the offsets where their animation is at rest (see
- * `registerSnapStops` in lib/scrollStore). Between the first and last of them one wheel
- * gesture advances exactly one stop, so the step is a property of the page rather than of
- * how far a given viewer's wheel happens to travel — the complaint this exists to fix.
- * Outside them nothing is intercepted and the page scrolls normally.
+ * `registerSnapStops` in lib/scrollStore). Between the first and last of them the page is
+ * not free to scroll at all: a gesture is an instruction to advance one stop, and the page
+ * moves itself there. One notch of a stiff wheel and one flick of a sensitive trackpad do
+ * the same thing, which is the point — the review's complaint was that the distance
+ * travelled depended on the viewer's hardware. Outside those offsets nothing is
+ * intercepted and the page scrolls normally.
  *
- * Two entry points, because not every scroll is a wheel:
+ * The load-bearing detail is that blocking the browser's default scroll is not enough.
+ * Lenis registers its own wheel listener before this one and has already taken the delta by
+ * the time `preventDefault` runs, so every gesture that is not turned into a step has to be
+ * actively cancelled by re-pinning the page to its stop. Leaving that out is what made an
+ * earlier version drift: the page stayed still during a snap, when Lenis's own `scrollTo`
+ * owns the position and drops input, then slid freely in the gaps between snaps.
  *
- *  - The wheel handler steps immediately. It does not preventDefault and does not need
- *    to: Lenis's own `scrollTo` owns the scroll position for the length of its tween and
- *    discards wheel input while it runs, so re-targeting it is enough to swallow the
- *    gesture's delta. Reacting on the wheel rather than waiting for the page to settle
- *    also avoids chaining Lenis's ~1.15s inertia in front of the snap, which made a
- *    single gesture take some two and a half seconds and ate every other one.
- *  - The idle handler is the fallback for touch, keyboard and scrollbar dragging, which
- *    never produce a wheel event. It only pulls the page onto the closest stop.
+ * A step that would leave the zone is never intercepted, at either end, so nothing can trap
+ * a viewer inside it. Keyboard scrolling is deliberately left alone for the same reason;
+ * the idle handler quietly parks it on the nearest stop afterwards.
  *
  * Does nothing under `prefers-reduced-motion`: both sections render as ordinary static
  * blocks there, so there is no choreography left to protect.
@@ -65,6 +68,8 @@ export default function ScrollSnap() {
     let lastWheelAt = 0;
     let gestureDelta = 0;
     let snapEndsAt = 0;
+    let touchStartY = null;
+    let touchTravel = 0;
 
     const glideTo = (target, from) => {
       const seconds = Math.min(
@@ -75,8 +80,8 @@ export default function ScrollSnap() {
       scrollTo(target, { duration: seconds, easing: SNAP_EASE });
     };
 
-    // The stops, plus where the page currently sits in relation to them. Null when there
-    // is nothing to snap to or the page is outside the zone entirely.
+    // The stops and where the page sits among them, or null when there is nothing to snap
+    // to or the page is outside the zone entirely.
     const locate = () => {
       const stops = collectSnapStops();
       if (stops.length < 2) return null;
@@ -86,38 +91,93 @@ export default function ScrollSnap() {
       return { stops, y };
     };
 
+    // The stop one step from here in the direction of travel, or undefined when that step
+    // would leave the zone. Landing on the closest stop first when it lies ahead stops the
+    // page skipping one on the way in, or when reversing off a stop it has drifted from.
+    const stepTarget = ({ stops, y }, direction) => {
+      const anchor = nearestStop(stops, y);
+      const isAhead = direction > 0 ? anchor > y + LANDED_PX : anchor < y - LANDED_PX;
+      return isAhead ? anchor : stops[stops.indexOf(anchor) + direction];
+    };
+
+    // Cancel the movement Lenis already took from this gesture. `immediate` because this is
+    // a correction, not a transition -- the viewer should never see the page drift and come
+    // back, only that it did not move.
+    const holdAt = (stops, y) => scrollTo(nearestStop(stops, y), { immediate: true });
+
     const handleWheel = (event) => {
       const now = Date.now();
       const isNewGesture = now - lastWheelAt > GESTURE_GAP_MS;
       lastWheelAt = now;
 
       if (!event.deltaY || event.ctrlKey) return; // horizontal scroll, or pinch zoom
-      if (isNewGesture) gestureDelta = 0;
-      if (now < snapEndsAt) return;
-
-      gestureDelta += event.deltaY;
-      if (Math.abs(gestureDelta) < WHEEL_THRESHOLD_PX) return;
 
       const here = locate();
       if (!here) return;
-      const { stops, y } = here;
 
-      const direction = gestureDelta > 0 ? 1 : -1;
-      const anchor = nearestStop(stops, y);
+      if (isNewGesture) gestureDelta = 0;
 
-      // Land on the closest stop first when it lies ahead in the direction of travel —
-      // otherwise entering the zone, or nudging off a stop and reversing, skips one.
-      const isAhead = direction > 0 ? anchor > y + LANDED_PX : anchor < y - LANDED_PX;
-      const target = isAhead ? anchor : stops[stops.indexOf(anchor) + direction];
+      // Mid-snap: Lenis's scrollTo owns the position and discards input, so the tween only
+      // needs the browser's own scrolling held off it.
+      if (now < snapEndsAt) {
+        event.preventDefault();
+        return;
+      }
 
-      // undefined means the step would leave the zone: let the page scroll out normally.
-      if (target === undefined) return;
+      gestureDelta += event.deltaY;
+      const target = stepTarget(here, gestureDelta > 0 ? 1 : -1);
+      if (target === undefined) return; // stepping out of the zone: let the page go
+
+      event.preventDefault();
+
+      if (Math.abs(gestureDelta) < WHEEL_THRESHOLD_PX) {
+        holdAt(here.stops, here.y);
+        return;
+      }
       gestureDelta = 0;
-      glideTo(target, y);
+      glideTo(target, here.y);
     };
 
-    // Touch, keyboard and scrollbar dragging land here instead. No stepping: whatever the
-    // viewer did, the page settles onto the closest stop rather than mid-animation.
+    const handleTouchStart = (event) => {
+      touchStartY = event.touches[0]?.clientY ?? null;
+      touchTravel = 0;
+    };
+
+    // The swipe only records an intent; the page does not move until the finger lifts.
+    // Stepping mid-swipe does not work: Lenis stops any running animation on every touch
+    // event it sees, so a snap started on `touchmove` was killed a fraction of the way in
+    // and the page was left stranded between two stops.
+    const handleTouchMove = (event) => {
+      if (touchStartY === null) return;
+      const here = locate();
+      if (!here) return;
+
+      // Dragging down the screen scrolls the page up, hence the inversion.
+      touchTravel = touchStartY - (event.touches[0]?.clientY ?? touchStartY);
+      if (stepTarget(here, touchTravel > 0 ? 1 : -1) === undefined) return;
+
+      event.preventDefault();
+      // Cancel anything that got past preventDefault, so the page is visibly locked for
+      // the length of the swipe rather than sliding and then jumping back.
+      if (Date.now() >= snapEndsAt) holdAt(here.stops, here.y);
+    };
+
+    const handleTouchEnd = () => {
+      const travel = touchTravel;
+      touchStartY = null;
+      touchTravel = 0;
+      if (Math.abs(travel) < TOUCH_THRESHOLD_PX) return;
+
+      const here = locate();
+      if (!here) return;
+      const target = stepTarget(here, travel > 0 ? 1 : -1);
+      if (target === undefined) return;
+      glideTo(target, here.y);
+    };
+
+    // Keyboard and scrollbar dragging land here instead of being intercepted. No stepping:
+    // whatever the viewer did, the page settles onto the closest stop rather than stranded
+    // mid-animation.
     const park = () => {
       if (Date.now() < snapEndsAt) return;
       const here = locate();
@@ -132,11 +192,19 @@ export default function ScrollSnap() {
       idleTimer = setTimeout(park, IDLE_MS);
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: true });
+    // Both gesture listeners must be non-passive: a passive listener may not call
+    // preventDefault, and the browser would scroll underneath the snap.
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       clearTimeout(idleTimer);
       window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);

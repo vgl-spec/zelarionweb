@@ -353,6 +353,24 @@ export default function ProjectInquirySection({ onSubmit, className }) {
 
       <div className="relative z-10 mx-auto max-w-6xl px-6">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-12">
+          {/* The two right-hand columns were empty at every width above `lg`, which left
+              the form floating against bare shader. Sticky so it stays in view while the
+              form scrolls past it, and hidden below `lg` where it would only push the
+              first field further down the page. Decorative, so `alt` is empty and it is
+              hidden from assistive tech rather than described. */}
+          <div className="hidden lg:col-span-2 lg:order-last lg:block">
+            <img
+              src="/assets/photos/contact-skyline.webp"
+              alt=""
+              aria-hidden="true"
+              width="900"
+              height="1350"
+              loading="lazy"
+              decoding="async"
+              className="sticky top-28 h-[32rem] w-full rounded-2xl border border-line object-cover opacity-80"
+            />
+          </div>
+
           <div className="lg:col-span-3">
             <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Start Your Project

@@ -17,39 +17,47 @@ const item = {
 };
 
 /**
- * The hero copy, unchanged from the previous hero — only its container changed (it now
- * sits above `HeroParallax`'s card rows instead of alone). Kept as its own component so
- * `HeroParallax` can render it outside the rotateX/rotateZ transform that only the card
- * rows get, and so the reduced-motion branch renders the exact same copy, unanimated.
+ * The hero copy. Centred and stacked rather than a left-aligned block: the headline is
+ * split across two lines at deliberately different sizes so the second half carries the
+ * weight, with the supporting line and the calls to action stacked beneath it on the same
+ * axis. Kept as its own component so `HeroParallax` can render it outside the
+ * rotateX/rotateZ transform that only the card rows get, and so the reduced-motion branch
+ * renders the exact same copy, unanimated.
  */
 function HeroHeader() {
   return (
     <div className="relative z-10 mx-auto max-w-content px-6">
-      <motion.div variants={container} initial="hidden" animate="show" className="max-w-4xl">
-        <motion.div variants={item}>
-          <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-4 py-1.5 text-[13px] text-text-dim backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-aurora-teal shadow-[0_0_10px_2px_rgba(45,212,196,0.6)]" />
-            Software studio in the Philippines, working internationally
+      <motion.div
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="mx-auto max-w-4xl text-center"
+      >
+        {/* Two spans, two sizes. The lead is the setup and the trail is the claim, so the
+            trail is roughly twice the size and carries the gradient; at one size the whole
+            line reads as an undifferentiated wall of type. text-wrap:balance stops the
+            last line orphaning, and browsers without it just wrap as before. */}
+        <motion.h1 variants={item} className="font-display tracking-tightest [text-wrap:balance]">
+          <span className="block text-[clamp(1.25rem,2.8vw,2rem)] font-medium leading-[1.15] text-text-dim">
+            Digital solutions built around
           </span>
-        </motion.div>
-
-        {/* text-wrap:balance stops the last line orphaning on "on." — without it the
-            headline breaks after "run" and drops two characters onto a line of their
-            own. Browsers without support just wrap as before. */}
-        <motion.h1
-          variants={item}
-          className="mt-7 font-display text-[clamp(2.5rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-tightest text-text [text-wrap:balance]"
-        >
-          Digital solutions built around{' '}
-          <span className="text-gradient">how your business works.</span>
+          <span className="mt-3 block text-[clamp(2.25rem,5.5vw,4.25rem)] font-bold leading-[1.02] text-gradient">
+            how your business works.
+          </span>
         </motion.h1>
 
-        <motion.p variants={item} className="mt-7 max-w-lg text-lg leading-relaxed text-text-dim">
+        <motion.p
+          variants={item}
+          className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-text-dim"
+        >
           Zelarion creates software, web apps, and internal systems that turn
           complex business needs into clear, dependable digital experiences.
         </motion.p>
 
-        <motion.div variants={item} className="mt-9 flex flex-wrap items-center gap-3">
+        <motion.div
+          variants={item}
+          className="mt-10 flex flex-wrap items-center justify-center gap-3"
+        >
           <Link to="/contact" className={buttonVariants({ variant: 'solid', size: 'lg' })}>
             Start a project
             <ArrowUpRight size={18} strokeWidth={2.2} />

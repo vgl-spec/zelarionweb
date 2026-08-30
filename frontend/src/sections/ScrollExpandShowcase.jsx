@@ -20,12 +20,17 @@ const CONTENT_END = 0.82; // expanded copy has finished revealing
 // changes nothing; the remaining scroll simply carries on into the next section.
 const SNAP_PROGRESS = [0, CONTENT_END];
 
-// An abstract 3D render (white wireframe cubes connected in a lattice), not a
-// screenshot of any client build. It carries no readable text of its own, so
-// Zelarion's overlay headline stays legible on top of it instead of competing
-// with someone else's copy the way a real site screenshot would.
-const MEDIA = '/assets/showcase-lattice.webp';
-const MEDIA_ALT = 'Abstract 3D render of white wireframe cubes connected in a lattice';
+// A photograph of a working warehouse aisle, replacing the abstract cube lattice that
+// stood here. The lattice was decoration: it said nothing about the business, and this is
+// the largest image on the site. A real operating environment is the only thing on the
+// page that evidences the "internal systems that stay behind the scenes" claim.
+//
+// It keeps the property the lattice was chosen for: no readable text anywhere in frame,
+// and a dim, uncluttered centre, so the headline sitting on top of it stays legible
+// instead of colliding with someone else's words.
+const MEDIA = '/assets/photos/showcase-warehouse.webp';
+const MEDIA_ALT =
+  'A worker walking a warehouse aisle between loaded pallet racking, seen from a distance';
 
 // Single source for the copy: the animated and reduced-motion trees render the
 // same words, and a wording change must not have to be made in two places.
@@ -162,10 +167,19 @@ export default function ScrollExpandShowcase() {
             decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/40" />
+          {/* Horizontal ramp as well as the vertical one. Once the media is full bleed the
+              expanded copy sits over the left half of the photograph, and text-dim on a
+              mid-tone pallet of boxes does not clear 4.5:1 on its own. */}
+          <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/55 to-ink/15" />
         </motion.div>
 
         {/* blended title over the media */}
-        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center mix-blend-difference">
+        {/* Plain white, not `mix-blend-difference`. Difference blending was chosen for the
+            abstract lattice that used to sit here, which was near black, so inverting it
+            produced near white. Against a photograph it inverts to mid grey and the
+            headline goes muddy -- and it changes value across the frame, so half the line
+            reads brighter than the other half. */}
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
           <motion.p
             style={{ opacity: eyebrowOpacity }}
             className="mb-4 text-[12px] font-medium uppercase tracking-[0.28em] text-white"
