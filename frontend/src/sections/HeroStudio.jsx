@@ -29,7 +29,7 @@ function HeroHeader() {
         <motion.div variants={item}>
           <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-4 py-1.5 text-[13px] text-text-dim backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-aurora-teal shadow-[0_0_10px_2px_rgba(45,212,196,0.6)]" />
-            Software studio, Philippines — working internationally
+            Software studio in the Philippines, working internationally
           </span>
         </motion.div>
 

@@ -50,9 +50,13 @@ export function unlockScroll() {
 // so this falls back to the native API directly, honouring the same `offset`/`immediate`
 // shape as Lenis's own scrollTo (https://github.com/darkroomengineering/lenis) so callers
 // don't need to branch on which driver is live.
-export function scrollTo(target, { offset = 0, immediate = false } = {}) {
+// Extra options (`duration`, `easing`, `lock`, `onComplete`, ...) are forwarded to Lenis
+// untouched. The native fallback below understands none of them, which is why callers
+// that depend on a specific tween must still behave correctly when it snaps instantly.
+export function scrollTo(target, options = {}) {
+  const { offset = 0, immediate = false } = options;
   if (scrollDriver) {
-    scrollDriver.scrollTo(target, { offset, immediate });
+    scrollDriver.scrollTo(target, { ...options, offset, immediate });
     return;
   }
   const behavior = immediate ? 'auto' : 'smooth';
@@ -76,4 +80,29 @@ export function registerSection(name, el) {
     center:
       docHeight > 0 ? (top + rect.height / 2 - window.innerHeight / 2) / docHeight : 0,
   };
+}
+
+// Sections that own a scroll-driven animation register the document offsets (in px)
+// where that animation is at rest. ScrollSnap parks the page on one of them once the
+// viewer stops scrolling, so a transition can never be left frozen halfway. Providers
+// are functions rather than plain arrays because the offsets move with layout and have
+// to be re-measured after a resize, a font swap, or an image finishing its load.
+const snapStopProviders = new Map();
+
+export function registerSnapStops(id, getStops) {
+  snapStopProviders.set(id, getStops);
+  return () => {
+    if (snapStopProviders.get(id) === getStops) snapStopProviders.delete(id);
+  };
+}
+
+/** Every registered stop, de-duplicated and sorted ascending. */
+export function collectSnapStops() {
+  const stops = [];
+  snapStopProviders.forEach((getStops) => {
+    getStops().forEach((stop) => {
+      if (Number.isFinite(stop)) stops.push(Math.round(stop));
+    });
+  });
+  return [...new Set(stops)].sort((a, b) => a - b);
 }

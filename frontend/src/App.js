@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import SmoothScroll from './components/SmoothScroll';
 import ScrollToHash from './components/ScrollToHash';
+import ScrollSnap from './components/ScrollSnap';
 import Navigation2 from './sections/Navigation2';
 import HeroStudio from './sections/HeroStudio';
 import CredibilityBar from './sections/CredibilityBar';
@@ -11,7 +12,7 @@ import WorkShowcase from './sections/WorkShowcase';
 import ServicesSection from './sections/ServicesSection';
 import ProcessSection from './sections/ProcessSection';
 import Faq5, { zelarionFaqCategories } from './sections/Faq5';
-import CursorTrailContact from './sections/CursorTrailContact';
+import ContactCta from './sections/ContactCta';
 import CinematicFooter from './sections/CinematicFooter';
 import WorkPage from './pages/WorkPage';
 import ServicesPage from './pages/ServicesPage';
@@ -52,20 +53,24 @@ function SiteShell({ children, withTravellingCore = false }) {
 function HomePage() {
   return (
     <>
+      {/* Snapping is scoped to the home page because the two sections that register stops
+          (the hero card wall and the expanding showcase) only exist here. It parks the
+          page on their keyframes and leaves everything below them scrolling normally. */}
+      <ScrollSnap />
       <HeroStudio />
       <CredibilityBar />
       <ScrollExpandShowcase />
       {/* The header and footer link to these dedicated routes now (not these anchors),
           but the ids stay: they're still valid in-page scroll targets for ScrollToHash. */}
       <div id="work">
-        <WorkShowcase limit={3} showViewAll />
+        <WorkShowcase limit={4} showViewAll />
       </div>
       <ServicesSection />
       <ProcessSection />
       <div id="faq">
         <Faq5 categories={zelarionFaqCategories} />
       </div>
-      <CursorTrailContact />
+      <ContactCta />
     </>
   );
 }

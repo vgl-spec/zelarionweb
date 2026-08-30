@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 
+import { registerSnapStops } from '../../lib/scrollStore';
 import { cn, prefersReducedMotion } from '../../lib/utils';
 
 // Port of Aceternity's "Hero Parallax" (https://ui.aceternity.com/components/hero-parallax)
@@ -8,6 +9,17 @@ import { cn, prefersReducedMotion } from '../../lib/utils';
 // original springConfig is omitted — framer-motion's spring only reads `bounce` when
 // `stiffness`/`damping` are both absent, so it was a dead field in the reference.
 const SPRING_CONFIG = { stiffness: 300, damping: 30 };
+
+// Where ScrollSnap is allowed to park the page inside the card wall, as fractions of
+// `scrollYProgress`. Everything except the horizontal drift has finished by 0.2, so there
+// is no half-played transition to land on past that point — these are quarter steps
+// because that is the pacing the page needs: one gesture moves the wall a quarter,
+// whatever a given viewer's wheel sensitivity would otherwise have done.
+//
+// 1 is deliberately absent. It puts the section's bottom edge at the top of the viewport,
+// which is a sliver of the next section rather than a state of this one; the showcase's
+// own first stop sits a hundred pixels further on and is the real next resting place.
+const SNAP_FRACTIONS = [0, 0.25, 0.5, 0.75];
 
 // `sizeClassName` is the one thing that differs between the parallax rows (fixed
 // flex-item dimensions so the row can overflow off-screen) and the reduced-motion grid
@@ -76,6 +88,27 @@ function AnimatedParallax({ items, header }) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
+  // `offset: ['start start', 'end start']` means progress runs from the section's top
+  // reaching the viewport top to its bottom reaching it — so the scroll range is exactly
+  // the section's own height, and a progress fraction converts straight to an offset.
+  useEffect(
+    () =>
+      registerSnapStops('hero-parallax', () => {
+        const el = ref.current;
+        if (!el) return [];
+        const top = window.scrollY + el.getBoundingClientRect().top;
+        const stops = SNAP_FRACTIONS.map((fraction) => top + el.offsetHeight * fraction);
+        // Progress is clamped at zero, so every offset from the document top down to
+        // `top` renders the identical first frame — `top` is only below zero at all
+        // because the sticky header takes the first 64px of the document. Anchor the
+        // first stop at the document top instead: it is where the page loads, and a
+        // first gesture that travelled 64px would look like nothing had happened.
+        stops[0] = 0;
+        return stops;
+      }),
+    []
+  );
+
   const translateX = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1000]), SPRING_CONFIG);
   const translateXReverse = useSpring(
     useTransform(scrollYProgress, [0, 1], [0, -1000]),
@@ -98,7 +131,12 @@ function AnimatedParallax({ items, header }) {
   return (
     <div
       ref={ref}
-      className="relative flex h-[300vh] flex-col self-auto overflow-hidden py-40 antialiased [perspective:1000px] [transform-style:preserve-3d]"
+      // Height is content-driven, not `h-[300vh]`. The rows are sized in px, so a viewport
+      // multiple could only match the content at one window height: at 1440x900 a 300vh
+      // container ran 656px past the last card, and the middle of the scroll was a blank
+      // screen. `pb-56` is the runway the +160px settle needs so the bottom row is never
+      // clipped by `overflow-hidden`.
+      className="relative flex flex-col self-auto overflow-hidden pb-56 pt-40 antialiased [perspective:1000px] [transform-style:preserve-3d]"
     >
       {header}
       <motion.div style={{ rotateX, rotateZ, translateY, opacity }}>
@@ -120,8 +158,8 @@ function AnimatedParallax({ items, header }) {
   );
 }
 
-// `prefers-reduced-motion` viewers get a normal-height responsive grid instead of the
-// 300vh scroll-jack — no springs, no 3D transforms. Mirrors the StaticShowcase pattern in
+// `prefers-reduced-motion` viewers get a plain responsive grid instead of the scrolling
+// card wall — no springs, no 3D transforms. Mirrors the StaticShowcase pattern in
 // `sections/ScrollExpandShowcase.jsx`: same content, choreography stripped, not hidden.
 function StaticParallax({ items, header }) {
   return (
