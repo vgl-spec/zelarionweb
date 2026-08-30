@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const SITE_URL = 'https://zelarionweb.vercel.app';
+const SITE_URL = 'https://www.zelarion.tech';
 const SITE_NAME = 'Zelarion';
 
 /**
