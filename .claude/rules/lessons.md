@@ -7,6 +7,40 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-30 (hover intent + a grid that was already full)
+
+- **Read the WHOLE container before adding a child to a grid.** `ProjectInquirySection`
+  is `lg:grid-cols-5` holding a `lg:col-span-3` form and a `lg:col-span-2` aside -- five of
+  five. A grep for `lg:grid` and `lg:col-span-3` showed the form and looked like two spare
+  columns, so a third `col-span-2` child went in; 3+2+2 overflows, it wrapped to a second
+  row, and a large photograph ended up orphaned underneath the form. The user spotted it in
+  a screenshot. **Grep found the class I was looking for and hid the one that mattered.**
+
+- **A test that only asks "did the image render" cannot see that it rendered in the wrong
+  place.** The contact check asserted loaded / decorative / hidden-at-390px and passed with
+  the image stranded on a second grid row. Position is a property worth asserting: the fix
+  added `img.left >= form.right` and a count of the grid's direct children, and both fail
+  loudly against the broken build.
+
+- **"A mousemove fired" is not evidence the viewer moved the pointer.** Scrolling a tile
+  under a stationary cursor makes the browser dispatch mousemove with the SAME clientX/
+  clientY, so a movement guard keyed on the event alone still opened previews during a
+  scroll. Compare coordinates against the last recorded position and ignore unchanged ones.
+  Pair it with a scroll-quiet window, because a trackpad scroll with a few pixels of cursor
+  drift produces genuine movement and only the quiet test rejects that.
+
+- **A guard that only arms on `mouseenter` strands the element it protects.** Once a scroll
+  parks a tile under the cursor, mouseenter has already fired and will never fire again
+  while the pointer stays inside, so the tile could not be opened at all without leaving and
+  coming back. Start the intent timer from `mousemove` over the element as well as from
+  enter, so a deliberate move inside it still counts as intent.
+
+- **Anchor a scripted patch on structure, not on a long comment you wrote earlier.** A
+  removal keyed to a five-line comment failed on a single word ("right-hand grid columns"
+  vs "right-hand columns"). Anchor on the unique class list and walk the tag depth to find
+  the block end. Same run, the failure was invisible because the patch and the build were
+  chained in one backgrounded command -- exactly the trap already recorded above, hit again.
+
 ## 2026-08-30 (photography pass)
 
 - **A blend mode is tuned to the backdrop it was chosen for, so swapping the media
