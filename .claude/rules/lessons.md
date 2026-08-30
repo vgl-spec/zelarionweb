@@ -7,6 +7,36 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-30 (photography pass)
+
+- **A blend mode is tuned to the backdrop it was chosen for, so swapping the media
+  invalidates it.** `ScrollExpandShowcase`'s headline used `mix-blend-difference`, which was
+  right for the near-black cube lattice: inverting near-black gives near-white. Against a
+  photograph it inverts to mid grey, AND the value changes across the frame, so half the
+  line read brighter than the other half. Nothing errored and the headline was still
+  technically visible, it just went muddy. When you replace the image behind text, re-check
+  every blend mode, filter and scrim that was calibrated against the old one.
+
+- **Contrast measured from a screenshot that still contains the text is meaningless.**
+  The first measurement reported a brightest backdrop luminance of 0.84 and a failing 2.53:1
+  -- that 0.84 was the white glyphs inside the crop. Hide the text layer
+  (`visibility: hidden` on the h2/h3/p), re-shoot, and measure the bare backdrop: the real
+  numbers were 5.91:1 for body text and 14.93:1 for the heading. **The thing you are
+  measuring against must not be in the sample.**
+
+- **Plugin skill symlinks arrive as plain text files on a Windows checkout.** The
+  `ui-ux-pro-max` skill's `scripts` and `data` entries were 31 and 34 byte FILES whose
+  contents were `../../../src/ui-ux-pro-max/scripts`. `python .../scripts/search.py` failed
+  with "No such file or directory" and the directory listing showed them as regular files
+  with plausible sizes. `cat` the entry to get the real target, then run from
+  `<plugin>/src/...` instead of the `.claude/skills/...` facade.
+
+- **Portrait imagery that is right on a desktop grid is half a phone viewport.** Four 3:4
+  process cards at four columns is a strong sequence at 1440px; stacked at 390px each one is
+  456px of a 844px screen and the section becomes mostly photograph. Give phones a landscape
+  crop of the same file (`aspect-[4/3] sm:aspect-[3/4]`) rather than shrinking the card or
+  dropping the image.
+
 ## 2026-08-30 (later)
 
 - **`preventDefault` on a wheel event does NOT stop Lenis.** Lenis registers its own
