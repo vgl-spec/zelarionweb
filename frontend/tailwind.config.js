@@ -72,6 +72,24 @@ module.exports = {
       letterSpacing: {
         tightest: '-0.045em',
       },
+      // One named scale for the whole site, so a heading is chosen by its ROLE rather
+      // than by picking a number per section. Before this existed the same tier of
+      // heading rendered at 30, 32, 36 and 48px at 390px, and body copy at 15, 16, 18
+      // and 20px, because every section arrived at its own clamp independently.
+      //
+      // Each entry clamps, so one utility covers 390px through desktop without a
+      // breakpoint per heading, and the FLOOR is the mobile size. Body sits at 1rem:
+      // below 16px iOS zooms the page on focus, and 15px body was under that line.
+      fontSize: {
+        display: ['clamp(2.25rem, 6vw, 4.5rem)', { lineHeight: '1.02', letterSpacing: '-0.045em' }],
+        h1: ['clamp(2rem, 5vw, 3.5rem)', { lineHeight: '1.06', letterSpacing: '-0.04em' }],
+        h2: ['clamp(1.875rem, 4.5vw, 3rem)', { lineHeight: '1.1', letterSpacing: '-0.035em' }],
+        h3: ['1.125rem', { lineHeight: '1.4', letterSpacing: '-0.01em' }],
+        'body-lg': ['1.0625rem', { lineHeight: '1.65' }],
+        body: ['1rem', { lineHeight: '1.6' }],
+        meta: ['0.8125rem', { lineHeight: '1.5' }],
+        eyebrow: ['0.6875rem', { lineHeight: '1.4', letterSpacing: '0.2em' }],
+      },
       spacing: {
         section: '8rem',
         'section-lg': '10rem',

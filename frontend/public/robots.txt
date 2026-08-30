@@ -1,0 +1,7 @@
+# Everything here is public marketing content, so nothing is disallowed.
+# Googlebot-Image must be able to reach the favicons or Google will not show
+# one beside the search result.
+User-agent: *
+Allow: /
+
+Sitemap: https://zelarionweb.vercel.app/sitemap.xml

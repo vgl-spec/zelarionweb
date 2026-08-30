@@ -23,10 +23,10 @@ export default function WorkShowcase({ limit, showViewAll = false, className }) 
       <div className="mx-auto max-w-content px-6">
         <Reveal className="max-w-2xl">
           <Eyebrow>Selected solutions</Eyebrow>
-          <h2 className="mt-5 font-display text-4xl font-bold tracking-tightest text-text sm:text-5xl">
+          <h2 className="mt-5 font-display text-h2 font-bold text-text">
             Digital systems built for real operations.
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-text-dim">
+          <p className="mt-4 text-body-lg text-text-dim">
             Explore a selection of digital solutions designed to support customer experiences,
             business operations, and the teams behind them. Every tile is a real screenshot of
             the live landing page. Hover or tap one to learn more.

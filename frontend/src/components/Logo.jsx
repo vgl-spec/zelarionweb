@@ -6,7 +6,7 @@ export default function Logo({ className, showWord = true }) {
   return (
     <a
       href="#top"
-      className={cn('group inline-flex items-center gap-2.5', className)}
+      className={cn('group inline-flex min-h-[44px] items-center gap-2.5 py-1.5', className)}
       data-testid="brand-logo"
       aria-label="Zelarion home"
     >

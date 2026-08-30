@@ -48,7 +48,7 @@ function HeroHeader() {
 
         <motion.p
           variants={item}
-          className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-text-dim"
+          className="mx-auto mt-8 max-w-xl text-body-lg text-text-dim"
         >
           Zelarion creates software, web apps, and internal systems that turn
           complex business needs into clear, dependable digital experiences.

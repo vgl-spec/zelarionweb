@@ -7,6 +7,56 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-30 (SEO, mobile scale, money input)
+
+- **Google does not render SVG favicons.** Its supported formats are BMP, GIF, ICO, PNG,
+  JPEG, PPM and TIFF. This site shipped an SVG-only `rel="icon"`, so no favicon could ever
+  appear beside a search result no matter how well the rest of the page ranked. PNGs at
+  48/96/192 now sit alongside it (Google wants square, at least 48px, at a URL that does not
+  change). The SVG stays first because browsers prefer it in the tab.
+
+- **Social crawlers do not execute JavaScript, so a React-injected meta tag is invisible to
+  them.** Facebook, Messenger and LinkedIn read the served HTML. In a CRA single-page app
+  that is one `index.html` for every route, which means the Open Graph tags have to be
+  STATIC and complete there; the per-route component can only serve Google, which does
+  render. Getting this backwards produces link previews that silently fall back to a bare
+  URL while every local check passes.
+
+- **Read what is actually in `public/index.html` before assuming it is fine.** This site had
+  been serving `"Zelarion runs your entire test suite on every commit and returns a
+  pass/fail verdict in 90 seconds"` as its meta description and `"Ship with proof, not
+  hope."` as its title for the life of the project. Boilerplate from an unrelated template,
+  and the single most visible string in a search result.
+
+- **`min-height` does nothing on a non-replaced inline element.** The mobile nav links
+  carried `min-h-[44px]` and measured 42px, because react-router renders a plain `<a>`,
+  which is `display: inline`. Same for the footer pills and the logo. The class looked like
+  the accessibility work had been done and no assertion had ever checked it. Add `flex` or
+  `block` alongside any `min-h-*` on a link.
+
+- **Measure the type scale before standardising it.** An audit of computed font sizes at
+  390px found body copy at 15, 16, 17, 18 AND 20px, and the same tier of section heading at
+  30, 32, 36 and 48px, because every section had arrived at its own clamp independently.
+  Nothing in the source looked wrong file by file; only the collected numbers showed it. The
+  scale now lives once in `tailwind.config.js` as named `text-h1/h2/h3/body/meta/eyebrow`.
+
+- **A grouped money input has to store raw digits and group only for DISPLAY.** Keeping the
+  formatted string in state means every reader (validation, the payload, the max check) has
+  to strip separators, and one that forgets sends `"1,500,000"` to a server expecting a
+  number. Store digits, render `toLocaleString`, and restore the caret by counting DIGITS
+  before it rather than characters: separators are rewritten on every keystroke, so a
+  character offset drifts and typing into the middle of a number throws the caret to the end.
+
+- **`page.goto` on an XML or manifest URL throws "Download is starting".** The local static
+  server had no MIME type for `.xml`, so it served `application/octet-stream` and Chromium
+  downloaded rather than rendered it, crashing the suite. Use `context.request.get` for any
+  non-HTML file; it reports a status instead of navigating.
+
+- **Retire an assertion together with the feature it guards.** After the contact photo was
+  removed on request, `verify-photos` still asserted it rendered, and reported a failure for
+  work that was correct. A stale red is as costly as a false green: it trains you to skim
+  the output.
+
 ## 2026-08-30 (hover intent + a grid that was already full)
 
 - **Read the WHOLE container before adding a child to a grid.** `ProjectInquirySection`

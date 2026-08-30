@@ -69,7 +69,7 @@ function StaticShowcase() {
   return (
     <section id="build" className="relative" data-testid="showcase-section">
       <div className="mx-auto max-w-content px-6 py-24 md:py-32">
-        <p className="text-[12px] font-medium uppercase tracking-[0.28em] text-text-dim">
+        <p className="text-eyebrow font-medium uppercase text-text-dim">
           {EYEBROW}
         </p>
         <h2 className="mt-4 font-display text-[clamp(2rem,5.5vw,4.75rem)] font-bold leading-[0.98] tracking-tightest text-text">
@@ -81,11 +81,11 @@ function StaticShowcase() {
         </div>
 
         <div className="mt-10 max-w-3xl">
-          <h3 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] font-bold leading-[1.05] tracking-tightest text-text">
+          <h3 className="font-display text-display font-bold text-text">
             {BODY_HEADING}
           </h3>
           {BODY.map((paragraph) => (
-            <p key={paragraph} className="mt-5 text-xl leading-relaxed text-text-dim md:text-2xl">
+            <p key={paragraph} className="mt-5 text-body-lg text-text-dim md:text-xl">
               {renderBodyLine(paragraph)}
             </p>
           ))}
@@ -182,7 +182,7 @@ export default function ScrollExpandShowcase() {
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
           <motion.p
             style={{ opacity: eyebrowOpacity }}
-            className="mb-4 text-[12px] font-medium uppercase tracking-[0.28em] text-white"
+            className="mb-4 text-eyebrow font-medium uppercase text-white"
           >
             {EYEBROW}
           </motion.p>
@@ -206,11 +206,11 @@ export default function ScrollExpandShowcase() {
           className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-content flex-col justify-center px-6"
         >
           <div className="max-w-3xl">
-            <h3 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] font-bold leading-[1.05] tracking-tightest text-text">
+            <h3 className="font-display text-display font-bold text-text">
               {BODY_HEADING}
             </h3>
             {BODY.map((paragraph) => (
-              <p key={paragraph} className="mt-5 text-xl leading-relaxed text-text-dim md:text-2xl">
+              <p key={paragraph} className="mt-5 text-body-lg text-text-dim md:text-xl">
                 {renderBodyLine(paragraph)}
               </p>
             ))}
