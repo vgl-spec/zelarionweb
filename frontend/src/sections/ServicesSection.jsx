@@ -48,6 +48,34 @@ export default function ServicesSection() {
           </h2>
         </Reveal>
 
+        {/* A generic desk photograph, not a screenshot of a client build, which is why the
+            alt text describes the scene rather than claiming a system. It sits here because
+            this section is otherwise four blocks of prose with nothing to look at, and a
+            dashboard on a laptop is the one image that reads as all four services at once.
+            The scrim is what lets a brightly lit photo sit on a near-black page: without it
+            the white wall glares against every other section. */}
+        <Reveal delay={0.1} className="mt-14">
+          <figure className="relative overflow-hidden rounded-2xl border border-line">
+            <img
+              src="/assets/heroBG.webp"
+              alt="A laptop and phone on a desk, both showing the same dark analytics dashboard"
+              width="1600"
+              height="900"
+              loading="lazy"
+              decoding="async"
+              // A 21:9 band, not the source's 16:9: the top of the frame is blank wall and
+              // the bottom is floor, so cropping to the desk line puts the devices at the
+              // size they need to read and keeps this a supporting image rather than one
+              // that outweighs the four services beneath it.
+              className="aspect-[21/9] w-full object-cover object-center"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent"
+            />
+          </figure>
+        </Reveal>
+
         <div className="mt-20">
           {SERVICES.map((s, i) => (
             <Reveal

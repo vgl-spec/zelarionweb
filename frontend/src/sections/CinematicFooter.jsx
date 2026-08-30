@@ -469,13 +469,17 @@ export default function CinematicFooter() {
             </div>
           </div>
 
-          {/* Bottom bar */}
-          <div className="relative z-20 flex w-full flex-col items-center justify-between gap-6 px-6 pb-8 md:flex-row md:px-12">
-            <div className="cf-text-dim order-2 text-[10px] font-semibold uppercase tracking-widest md:order-1 md:text-xs">
+          {/* Bottom bar. A three-column grid rather than `justify-between`, because
+              space-between only centres the middle item when its neighbours happen to be
+              the same width -- the copyright line is far wider than the back-to-top button,
+              which pushed the studio pill well right of centre. Equal columns put it on the
+              page's centre line whatever the other two measure. */}
+          <div className="relative z-20 flex w-full flex-col items-center gap-6 px-6 pb-8 md:grid md:grid-cols-3 md:px-12">
+            <div className="cf-text-dim order-2 text-[10px] font-semibold uppercase tracking-widest md:order-1 md:justify-self-start md:text-xs">
               &copy; {year} {SITE.name}. All rights reserved.
             </div>
 
-            <div className="footer-glass-pill cf-border-dim order-1 flex cursor-default items-center gap-2 rounded-full border px-6 py-3 md:order-2">
+            <div className="footer-glass-pill cf-border-dim order-1 flex cursor-default items-center gap-2 rounded-full border px-6 py-3 md:order-2 md:justify-self-center">
               <span className="cf-text-dim text-[10px] font-bold uppercase tracking-widest md:text-xs">
                 Software &amp; Design Studio
               </span>
@@ -488,7 +492,7 @@ export default function CinematicFooter() {
               as="button"
               onClick={scrollToTop}
               aria-label="Back to top"
-              className="footer-glass-pill cf-text-dim group order-3 flex size-12 items-center justify-center rounded-full"
+              className="footer-glass-pill cf-text-dim group order-3 flex size-12 items-center justify-center rounded-full md:justify-self-end"
             >
               <ArrowUp className="size-5 transition-transform duration-300 group-hover:-translate-y-1.5" />
             </MagneticButton>

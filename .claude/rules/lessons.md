@@ -7,6 +7,49 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-30 (later)
+
+- **`preventDefault` on a wheel event does NOT stop Lenis.** Lenis registers its own
+  listener first, so by the time a later-mounted component's handler runs, Lenis has
+  already taken the delta; preventDefault only cancels the BROWSER's scroll.
+  `stopImmediatePropagation` cannot help either, for the same ordering reason. The only
+  way to cancel a gesture is to actively re-pin the page (`scrollTo(stop, {immediate:
+  true})`). Missing that is what made the first stepped-scroll attempt feel flaky: the page
+  was rock solid DURING a snap -- when Lenis's own `scrollTo` owns the position and drops
+  input -- and slid freely in every gap between snaps, so it read as intermittent.
+
+- **Lenis stops any running animation on every touch event it sees.** A snap fired from
+  `touchmove` was killed by the next `touchmove` about 185px into a 400px step, stranding
+  the page between two stops -- and it looked like a maths bug, not a lifecycle one. The
+  event trace was unambiguous: `tm 47 0 true` (prevented, at scroll 0), a burst of scroll
+  events to 185, then eleven more touchmoves with the page frozen. Fix: record the swipe's
+  intent during `touchmove` and fire the step on `touchend`, when no further touch events
+  can cancel it. Hold the page with an immediate `scrollTo` during the swipe so it is
+  visibly locked rather than sliding and snapping back.
+
+- **A test that locates an element by a style it happens to have will silently retarget.**
+  The contact CTA's underline was found with "first span whose transform is a matrix". Then
+  the arrow badge gained `translate-y`, became the first match, and the assertion started
+  reading `matrix(1,...)` -> `scaleX 1` and passing unconditionally -- it could no longer
+  fail even with the underline scaled to zero. Give the element a `data-testid` and address
+  it directly. A green check on the wrong node is worse than no check.
+
+- **A flex sibling next to a headline that wraps drops onto its own line.** The CTA's arrow
+  badge sat beside the text in a `flex flex-wrap` row; once "Got something to make?" broke
+  across two lines, the badge fell below "make?" and read as a stray circle. Put the badge
+  INSIDE the text span as an inline element, sized in `em` so it tracks the type, and it
+  rides the last word at every breakpoint.
+
+- **`justify-between` centres the middle of three items only when the outer two are the
+  same width.** The footer's studio pill sat right of centre because the copyright line is
+  far wider than the 48px back-to-top button. Equal-width grid columns
+  (`md:grid-cols-3` + `justify-self-*`) put it on the page's centre line regardless.
+
+- **A 1.67 MB PNG dropped into `public/assets` ships to every visitor.** `heroBG.png`
+  re-encoded to WebP at 1600px wide is 54 KB, a 97% cut with no visible loss. Everything in
+  `public/` is deployed, so the master does not belong there next to its optimised copy --
+  same trap as the 1.4 MB logo and the 17 MB "webm".
+
 ## 2026-08-30
 
 - **Wheel input is DISCARDED while a Lenis programmatic `scrollTo` is running.** A scroll
