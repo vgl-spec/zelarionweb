@@ -11,10 +11,19 @@ const OPEN_SECONDS = 0.4;
 const CLOSE_SECONDS = 0.26;
 const REDUCED_SECONDS = 0.15;
 
-// Long enough that the preview is a deliberate act. At 200ms it fired on any tile
-// the pointer happened to be resting over while the page scrolled past, which is the
-// opposite of letting someone study the screenshots.
-const HOVER_INTENT_MS = 420;
+// Long enough that the preview is a deliberate act rather than something the pointer
+// collects on its way across the grid.
+const HOVER_INTENT_MS = 650;
+
+// A click is an explicit request, so it skips the delay AND most of the entrance: played
+// at the hover duration, a deliberate click feels like the card is thinking about it.
+const CLICK_OPEN_SECONDS = 0.16;
+
+// How long after the last scroll event a hover is allowed to count. Lenis keeps emitting
+// for the length of its own inertia, so this is measured from when the page came to rest,
+// not from when the wheel stopped. It covers the one case the movement test cannot: a
+// trackpad scroll where the cursor drifts a few pixels at the same time.
+const SCROLL_QUIET_MS = 300;
 
 // The preview opens under the pointer's original position, which is over the
 // grid card and therefore over the backdrop. Without a grace window the very
@@ -82,7 +91,13 @@ export default function ExpandableProjectCard({ project, priority = false, class
   const openedAt = useRef(0);
   const dismissedAt = useRef(0);
   const lastPointerMoveAt = useRef(0);
+  const lastScrollAt = useRef(0);
+  const pointerPos = useRef({ x: -1, y: -1 });
+  const hasMovedSinceEnter = useRef(false);
   const isPointerOnDialog = useRef(false);
+  // Pointer-out dismissal applies to previews the pointer opened, not ones the viewer
+  // asked for: having clicked, moving the mouse should not take it away again.
+  const openedByClick = useRef(false);
 
   const clearOpenTimer = () => {
     if (openTimer.current) {
@@ -91,9 +106,10 @@ export default function ExpandableProjectCard({ project, priority = false, class
     }
   };
 
-  const open = useCallback(() => {
+  const open = useCallback((viaClick = false) => {
     openedAt.current = Date.now();
     isPointerOnDialog.current = false;
+    openedByClick.current = viaClick;
     setIsOpen(true);
   }, []);
 
@@ -104,25 +120,64 @@ export default function ExpandableProjectCard({ project, priority = false, class
   }, []);
 
   useEffect(() => {
-    const noteMove = () => {
+    // Scrolling a tile under a stationary cursor makes the browser dispatch mousemove with
+    // the SAME client coordinates, so "a mousemove happened" is not evidence that the
+    // viewer moved anything. Only a changed position counts.
+    const noteMove = (event) => {
+      if (event.clientX === pointerPos.current.x && event.clientY === pointerPos.current.y) {
+        return;
+      }
+      pointerPos.current = { x: event.clientX, y: event.clientY };
       lastPointerMoveAt.current = Date.now();
+      hasMovedSinceEnter.current = true;
     };
+    const noteScroll = () => {
+      lastScrollAt.current = Date.now();
+    };
+
     document.addEventListener('mousemove', noteMove, { passive: true });
+    window.addEventListener('scroll', noteScroll, { passive: true });
     return () => {
       document.removeEventListener('mousemove', noteMove);
+      window.removeEventListener('scroll', noteScroll);
       clearOpenTimer();
     };
   }, []);
 
+  // Every test runs when the timer fires, never at enter time: the browser dispatches
+  // mouseenter BEFORE the mousemove that caused it, so anything checked on enter reads a
+  // stale value and blocks even a deliberate first hover.
+  const startIntentTimer = () => {
+    clearOpenTimer();
+    openTimer.current = setTimeout(() => {
+      openTimer.current = 0;
+      // The pointer arrived here under its own power, rather than the page sliding the
+      // tile beneath a cursor that never moved.
+      if (!hasMovedSinceEnter.current) return;
+      // The page has come to rest. Catches a trackpad scroll with a little cursor drift,
+      // which passes the movement test on its own.
+      if (Date.now() - lastScrollAt.current < SCROLL_QUIET_MS) return;
+      // Closing removes the backdrop from under the cursor and the browser fires a fresh
+      // mouseenter on the tile below; that synthetic event has no movement behind it.
+      if (lastPointerMoveAt.current <= dismissedAt.current) return;
+      open();
+    }, HOVER_INTENT_MS);
+  };
+
   const handleTriggerEnter = () => {
     if (!canHover || isOpen) return;
-    clearOpenTimer();
-    // The movement test runs when the timer fires, not here. The browser
-    // dispatches mouseenter BEFORE the mousemove that caused it, so checking at
-    // enter time always reads a stale timestamp and blocks even the first hover.
-    openTimer.current = setTimeout(() => {
-      if (lastPointerMoveAt.current > dismissedAt.current) open();
-    }, HOVER_INTENT_MS);
+    // Movement has to happen AFTER arriving. In the accidental case the tile arrives under
+    // the pointer and no mousemove follows, so this stays false and nothing opens.
+    hasMovedSinceEnter.current = false;
+    startIntentTimer();
+  };
+
+  // A scroll that parks a tile under the cursor fires mouseenter once and never again, so
+  // without this the tile could not be opened afterwards without leaving and returning. A
+  // deliberate move inside it is the intent signal in that case.
+  const handleTriggerMove = () => {
+    if (!canHover || isOpen || openTimer.current) return;
+    startIntentTimer();
   };
 
   // Cancel a pending open if the pointer leaves before the intent delay elapses.
@@ -172,9 +227,18 @@ export default function ExpandableProjectCard({ project, priority = false, class
   // the card: at open time the pointer is already outside the card, so a
   // mouseleave would never fire and the preview could only be closed another way.
   const handleBackdropMove = () => {
-    if (!canHover || isPointerOnDialog.current) return;
+    if (!canHover || isPointerOnDialog.current || openedByClick.current) return;
     if (Date.now() - openedAt.current > DISMISS_GRACE_MS) close();
   };
+
+  // Read during render, not stored in state: `open()` sets it before `setIsOpen`, so by the
+  // time this subtree renders it already describes the gesture that opened it, and a click
+  // never has to wait out an entrance tuned for a hover.
+  const enterSeconds = reduced
+    ? REDUCED_SECONDS
+    : openedByClick.current
+      ? CLICK_OPEN_SECONDS
+      : OPEN_SECONDS;
 
   const previewImage = (
     <img
@@ -196,8 +260,13 @@ export default function ExpandableProjectCard({ project, priority = false, class
         id={triggerId}
         aria-expanded={isOpen}
         aria-controls={dialogId}
-        onClick={() => (isOpen ? close() : open())}
+        onClick={() => {
+          clearOpenTimer();
+          if (isOpen) close();
+          else open(true);
+        }}
         onMouseEnter={handleTriggerEnter}
+        onMouseMove={handleTriggerMove}
         onMouseLeave={handleTriggerLeave}
         className={cn(
           'group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface text-left',
@@ -255,7 +324,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
                   initial={{ opacity: 0 }}
                   animate={{
                     opacity: 1,
-                    transition: { duration: reduced ? REDUCED_SECONDS : OPEN_SECONDS, ease: EASE_EXPENSIVE },
+                    transition: { duration: enterSeconds, ease: EASE_EXPENSIVE },
                   }}
                   exit={{
                     opacity: 0,
@@ -276,6 +345,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
                     }}
                     onMouseLeave={() => {
                       isPointerOnDialog.current = false;
+                      if (openedByClick.current) return;
                       if (canHover && Date.now() - openedAt.current > DISMISS_GRACE_MS) close();
                     }}
                     initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
@@ -284,7 +354,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
                       y: 0,
                       scale: 1,
                       transition: {
-                        duration: reduced ? REDUCED_SECONDS : OPEN_SECONDS,
+                        duration: enterSeconds,
                         ease: EASE_EXPENSIVE,
                       },
                     }}
