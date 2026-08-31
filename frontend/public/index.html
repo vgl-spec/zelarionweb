@@ -22,6 +22,19 @@
     <meta name="author" content="Zelarion" />
 
     <!--
+      Google has ignored meta keywords since 2009; Bing and Yandex give them trace weight
+      at best. It is here because the brand is spelled several ways in the wild (Zelarion
+      PH, Zelarion Tech, Zelarion IT) and this costs nothing. The tag that actually teaches
+      a search engine those variants is `alternateName` in the Organization JSON-LD below.
+    -->
+    <meta
+      name="keywords"
+      content="Zelarion, Zelarion PH, Zelarion Tech, Zelarion Technology, Zelarion IT, Zelarion Philippines, Zelarion Software, Zelarion Web, Zelarion Digital, Zelarion Studio, Zelarion Web Development, Zelarion IT Solutions, web development Philippines, website design Philippines, software development Philippines, ecommerce development Philippines, IT solutions Philippines, custom software Philippines"
+    />
+    <meta name="application-name" content="Zelarion" />
+    <meta name="apple-mobile-web-app-title" content="Zelarion" />
+
+    <!--
       Google Search does not render SVG favicons: its supported formats are BMP, GIF, ICO,
       PNG, JPEG, PPM and TIFF. The PNGs below are what can actually appear beside a search
       result; the SVG stays first because browsers prefer it in the tab, where it is sharper.
@@ -94,10 +107,33 @@
             "@type": "Organization",
             "@id": "https://www.zelarion.tech/#organization",
             "name": "Zelarion",
+            "alternateName": [
+              "Zelarion PH",
+              "Zelarion Tech",
+              "Zelarion Technology",
+              "Zelarion IT",
+              "Zelarion Philippines",
+              "Zelarion Software",
+              "Zelarion Web",
+              "Zelarion Digital",
+              "Zelarion Studio",
+              "Zelarion Web Development",
+              "Zelarion IT Solutions",
+              "Zelarion Software Development"
+            ],
             "url": "https://www.zelarion.tech/",
             "logo": "https://www.zelarion.tech/favicon-192.png",
             "image": "https://www.zelarion.tech/og-image.png",
             "description": "Software and design studio building websites, commerce platforms and internal systems.",
+            "knowsAbout": [
+              "Web development",
+              "Web design",
+              "E-commerce development",
+              "Custom software development",
+              "Internal business systems",
+              "IT solutions",
+              "Website maintenance and support"
+            ],
             "address": {
               "@type": "PostalAddress",
               "addressCountry": "PH"
