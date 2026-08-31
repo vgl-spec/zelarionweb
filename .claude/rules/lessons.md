@@ -7,6 +7,26 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-08-31 (a bare link preview is a CACHE, not a bug)
+
+- **"The Messenger preview shows nothing" almost never means the tags are wrong.**
+  Every check against the live domain passed -- DNS resolved, `www` and apex both
+  answered, the apex 308'd to www, all 15 OG/Twitter tags were in the served HTML,
+  `og-image.png` returned 200 as a 162 KB `image/png`, and the JS and CSS bundles
+  both loaded. The site was completely healthy. Facebook caches its scrape PER URL,
+  so moving to a new domain means the new URL has either never been fetched or was
+  fetched once while it was still mid-propagation and the empty result stuck.
+  **Fetch the page with `curl -A "facebookexternalhit/1.1 ..."` before touching any
+  markup** -- if the tags come back, the markup is done and the fix is a re-scrape in
+  the Sharing Debugger, which only the site owner can trigger.
+
+- **A brand written several ways in the wild needs `alternateName`, not meta
+  keywords.** "Zelarion PH", "Zelarion Tech", "Zelarion IT" appeared in NO crawlable
+  surface, so a search for any variant had nothing to bind to the entity. Google has
+  ignored `<meta name="keywords">` since 2009; the tag that teaches it name variants
+  is `alternateName` on the `Organization` JSON-LD. Ship both if asked, but comment
+  which one is load-bearing so a future reader does not maintain the dead one.
+
 ## 2026-08-30 (domain move, shader coverage)
 
 - **A canvas can be exactly the right SIZE and still not COVER.** The contact shader's
