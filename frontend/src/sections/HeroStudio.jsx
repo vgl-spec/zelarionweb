@@ -50,8 +50,8 @@ function HeroHeader() {
           variants={item}
           className="mx-auto mt-8 max-w-xl text-body-lg text-text-dim"
         >
-          Zelarion creates software, web apps, and internal systems that turn
-          complex business needs into clear, dependable digital experiences.
+          Zelarion builds custom internal systems and web experiences that turn complex business
+          needs into clear, dependable digital experiences.
         </motion.p>
 
         <motion.div

@@ -86,6 +86,7 @@ function ParallaxRow({ screens, translate, reverse, eager, className }) {
 // card — matching the reference, and cheaper than 15 independent spring subscriptions.
 function AnimatedParallax({ items, header }) {
   const ref = useRef(null);
+  const isSingleItem = items.length === 1;
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
   // `offset: ['start start', 'end start']` means progress runs from the section's top
@@ -114,14 +115,26 @@ function AnimatedParallax({ items, header }) {
     useTransform(scrollYProgress, [0, 1], [0, -1000]),
     SPRING_CONFIG
   );
-  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [15, 0]), SPRING_CONFIG);
-  const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.2, 1]), SPRING_CONFIG);
-  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), SPRING_CONFIG);
+  const rotateX = useSpring(
+    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [0, 0] : [15, 0]),
+    SPRING_CONFIG
+  );
+  const opacity = useSpring(
+    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [1, 1] : [0.2, 1]),
+    SPRING_CONFIG
+  );
+  const rotateZ = useSpring(
+    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [0, 0] : [20, 0]),
+    SPRING_CONFIG
+  );
   // The reference settles this at +500. That assumes a page where the card wall is the
   // only content; here it drops the rows half a viewport below their layout position and
   // leaves a ~440px band of empty background between the header and the first row for the
   // whole middle of the scroll. +160 keeps the same fly-down entrance without the void.
-  const translateY = useSpring(useTransform(scrollYProgress, [0, 0.2], [-700, 160]), SPRING_CONFIG);
+  const translateY = useSpring(
+    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [0, 0] : [-700, 160]),
+    SPRING_CONFIG
+  );
 
   const rowSize = Math.ceil(items.length / 3);
   const firstRow = items.slice(0, rowSize);
@@ -142,17 +155,22 @@ function AnimatedParallax({ items, header }) {
       <motion.div style={{ rotateX, rotateZ, translateY, opacity }}>
         <ParallaxRow
           screens={firstRow}
-          translate={translateX}
+          translate={isSingleItem ? 0 : translateX}
           reverse
           eager
-          className="mb-8 sm:mb-12 md:mb-20"
+          className={cn(
+            isSingleItem && 'justify-center px-6',
+            secondRow.length > 0 && 'mb-8 sm:mb-12 md:mb-20'
+          )}
         />
-        <ParallaxRow
-          screens={secondRow}
-          translate={translateXReverse}
-          className="mb-8 sm:mb-12 md:mb-20"
-        />
-        <ParallaxRow screens={thirdRow} translate={translateX} reverse />
+        {secondRow.length > 0 && (
+          <ParallaxRow
+            screens={secondRow}
+            translate={translateXReverse}
+            className={thirdRow.length > 0 && 'mb-8 sm:mb-12 md:mb-20'}
+          />
+        )}
+        {thirdRow.length > 0 && <ParallaxRow screens={thirdRow} translate={translateX} reverse />}
       </motion.div>
     </div>
   );

@@ -12,11 +12,11 @@ export default function WorkPage() {
           <Reveal>
             <Eyebrow>Solutions</Eyebrow>
             <h1 className="mt-5 max-w-3xl font-display text-h1 font-bold text-text">
-              Digital systems shaped around the way your business operates.
+              Custom internal systems shaped around the way your business operates.
             </h1>
             <p className="mt-5 max-w-2xl text-body-lg text-text-dim">
-              From customer-facing web apps to internal platforms, operational tools, and tailored
-              software, we build digital solutions for the needs in front of you.
+              See how Zelarion supported Kaibo PH OPC with custom internal systems and a
+              client-facing web presence tailored to its business.
             </p>
           </Reveal>
         </div>
