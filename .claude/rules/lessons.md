@@ -7,6 +7,46 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-09-01 (unlisted is not private)
+
+- **An unlinked route is UNLISTED, never private.** /team is absent from the header, the
+  footer and the sitemap and carries `noindex`, but it is still public to anyone who types
+  the path, and its content ships inside the JS bundle. Say that plainly rather than
+  letting "hide it" be heard as "make it private". Anything genuinely confidential needs a
+  server, not a routing decision.
+
+- **Names in a statically imported page land in the MAIN bundle, downloaded on every
+  route.** `grep -c "<name>" build/static/js/main.*.js` returned 1 — so every visitor to
+  the home page was fetching the roster. `React.lazy` moved it into a 4 KB chunk that only
+  a /team visitor requests. The route table could then no longer build the page's JSON-LD
+  (that needs a static import of the names), so the page renders its own `<Seo>` and the
+  shell skips its own when a route supplies no `title`.
+
+- **Per-route `<meta name="robots">` must be RESTORED on unmount.** index.html ships one
+  site-wide `index, follow`; a route that overrides it to `noindex` leaks that to every
+  page reached by client-side navigation afterwards, because there is no document reload to
+  reset it. The effect cleanup has to put the original value back, and the test has to
+  navigate AWAY via a real in-page click to catch it.
+
+- **Choose the reversible direction on anything a crawler might keep.** Getting a person's
+  name out of a search index is slow and unreliable; adding it later is instant. So an
+  unlisted people page defaults to `noindex`, and indexing is the deliberate opt-in.
+
+- **A test's own PRECONDITION guard can be the flaky part.** "row was not drifting before
+  the hover" failed 1 in 7 — not the product, but a single fixed-delay sample racing an
+  IntersectionObserver callback that had not fired yet. Poll for the state the assertion
+  depends on instead of assuming a delay is long enough.
+
+- **Aiming a click at a container's centre can land in the GAP between its children.**
+  After fixing the poll, `elementFromPoint` at the row centre sometimes found no button at
+  all, and "clicking a tile did not open a dialog" looked exactly like a broken handler.
+  Clicking a gap correctly does nothing. Compute the nearest CHILD's centre and click that.
+
+- **When a removed feature comes back, invert its old assertion rather than deleting it.**
+  `verify.cjs` still asserted "/team renders the 404 view" from when the route was dropped.
+  The route is deliberately back, so the check now asserts it renders real content AND that
+  nothing links to it — the new intent stays guarded instead of going untested.
+
 ## 2026-09-01 (later: an idle rAF loop is not free)
 
 - **An always-running `useAnimationFrame` loop made a DIFFERENT component's timing test

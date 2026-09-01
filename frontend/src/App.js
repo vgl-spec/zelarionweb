@@ -28,6 +28,12 @@ import NotFound from './sections/NotFound';
 // renders correctly without it.
 const TravellingCore = lazy(() => import('./components/TravellingCore'));
 
+// Split so the roster on /team is fetched only by someone who visits /team, instead of
+// riding in the main bundle that every visitor downloads on every route. TeamPage renders
+// its own <Seo> for the same reason: a `jsonLd` prop passed from here would need a static
+// import of the names to build it.
+const TeamPage = lazy(() => import('./pages/TeamPage'));
+
 /**
  * Chrome shared by every route: the Lenis smooth-scroll driver, the header, and the
  * footer. The 404 route deliberately opts out of this shell, since it owns the full
@@ -113,6 +119,18 @@ const ROUTES = [
       'How an engagement runs, what happens after launch, and what you own at the end. Straight answers about working with a small studio.',
   },
   {
+    // Unlisted on purpose: no header, footer or sitemap entry points here, so it is
+    // reachable only by typing /team. It carries no `title` here because TeamPage owns
+    // its own <Seo> (including the noindex and the roster's JSON-LD) inside the lazy
+    // chunk -- see the SiteShell mapping below, which skips Seo for a route without one.
+    path: '/team',
+    element: (
+      <Suspense fallback={null}>
+        <TeamPage />
+      </Suspense>
+    ),
+  },
+  {
     path: '/contact',
     element: <ProjectInquirySection />,
     title: 'Start a project',
@@ -137,7 +155,7 @@ function App() {
             path={path}
             element={
               <SiteShell withTravellingCore={withTravellingCore}>
-                <Seo title={title} description={description} path={path} />
+                {title && <Seo title={title} description={description} path={path} />}
                 {element}
               </SiteShell>
             }
