@@ -26,7 +26,7 @@ function setMeta(selector, attribute, name, content) {
   tag.setAttribute('content', content);
 }
 
-export default function Seo({ title, description, path }) {
+export default function Seo({ title, description, path, jsonLd, noIndex = false }) {
   useEffect(() => {
     const url = `${SITE_URL}${path === '/' ? '/' : path}`;
     // Every title ends in the brand so a tab or a search result is attributable even when
@@ -41,6 +41,26 @@ export default function Seo({ title, description, path }) {
     setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', fullTitle);
     setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
 
+    // Route-level structured data, kept in its own tagged element so it can be removed
+    // on navigation. The static graph in index.html is served for every route, so
+    // anything true of only ONE page — people named on /team, for instance — has to be
+    // injected here instead of asserted site-wide.
+    const LD_ID = 'route-jsonld';
+    document.getElementById(LD_ID)?.remove();
+    if (jsonLd) {
+      const script = document.createElement('script');
+      script.id = LD_ID;
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(jsonLd);
+      document.head.appendChild(script);
+    }
+
+    // index.html ships a site-wide `index, follow`. A route that opts out has to override
+    // it and put it back on the way out, or the opt-out leaks into the next route.
+    const robots = document.head.querySelector('meta[name="robots"]');
+    const siteRobots = robots ? robots.getAttribute('content') : null;
+    if (robots && noIndex) robots.setAttribute('content', 'noindex, nofollow');
+
     let canonical = document.head.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -48,7 +68,12 @@ export default function Seo({ title, description, path }) {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute('href', url);
-  }, [title, description, path]);
+
+    return () => {
+      document.getElementById(LD_ID)?.remove();
+      if (robots && siteRobots) robots.setAttribute('content', siteRobots);
+    };
+  }, [title, description, path, jsonLd, noIndex]);
 
   return null;
 }

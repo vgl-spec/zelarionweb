@@ -37,15 +37,6 @@ const SITE = {
   },
 };
 
-// Published because the same people are named as `founder` and `employee` in the
-// Organization JSON-LD, and Google's structured data guidelines expect marked-up content
-// to be visible on the page rather than asserted only to the crawler.
-const LEADERSHIP = [
-  { name: 'Vergel A. Bautista', role: 'CEO' },
-  { name: 'Jeremiah A. Villaret', role: 'CTO' },
-  { name: 'Lara Aaliyah L. Quinto', role: 'HR & Accounting' },
-  { name: 'Jon Cristian R. Rivella', role: 'Marketing' },
-];
 
 // Dedicated routes exist for all of these (see App.js's ROUTES), so every pill points
 // there directly instead of at a home-page hash anchor -- react-router does not scroll to
@@ -496,15 +487,6 @@ export default function CinematicFooter() {
                 <MapPin className="cf-brand size-4 shrink-0" />
                 {SITE.contact.addressShort}
               </div>
-
-              <ul className="cf-text-dim mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-6 text-center text-[11px]">
-                {LEADERSHIP.map((person) => (
-                  <li key={person.name}>
-                    <span className="text-[var(--foreground)]/70">{person.name}</span>
-                    <span className="opacity-60"> — {person.role}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
 
