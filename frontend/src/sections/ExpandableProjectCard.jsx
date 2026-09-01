@@ -298,7 +298,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
 
         {/* The screenshots are all 1200x675, so a 16:9 box shows every one of them whole:
             no crop, and every tile in the grid is exactly the same shape. */}
-        <span className="block aspect-[16/9] overflow-hidden">{previewImage}</span>
+        <span className="block aspect-[8/5] overflow-hidden">{previewImage}</span>
 
         {/* Deliberately quiet, and deliberately below the image. The screenshot is what
             the visitor is here to look at; this is the caption on it. */}
@@ -395,7 +395,7 @@ export default function ExpandableProjectCard({ project, priority = false, class
                         stretch to the dialog's height cropped the screenshot, which is the
                         one thing this preview exists to show. */}
                     <div className="min-h-0 flex-1 overflow-y-auto lg:flex lg:items-stretch lg:overflow-visible">
-                      <div className="aspect-[16/9] w-full shrink-0 self-start overflow-hidden border-b border-line lg:w-[62%] lg:border-b-0 lg:border-r">
+                      <div className="aspect-[8/5] w-full shrink-0 self-start overflow-hidden border-b border-line lg:w-[62%] lg:border-b-0 lg:border-r">
                         {previewImage}
                       </div>
 

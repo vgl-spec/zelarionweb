@@ -26,10 +26,7 @@ const SNAP_FRACTIONS = [0, 0.25, 0.5, 0.75];
 // (fills its CSS Grid cell instead) — everything else about the card is identical.
 function ShowcaseCard({ screen, loading, sizeClassName }) {
   return (
-    <motion.figure
-      whileHover={{ y: -20 }}
-      className={cn('group/product relative', sizeClassName)}
-    >
+    <motion.div whileHover={{ y: -20 }} className={cn('group/product relative', sizeClassName)}>
       <img
         src={screen.src}
         alt={screen.alt}
@@ -39,24 +36,43 @@ function ShowcaseCard({ screen, loading, sizeClassName }) {
         decoding="async"
         className="absolute inset-0 h-full w-full rounded-xl object-cover object-left-top transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/product:scale-[1.03]"
       />
-      {/* The reference only reveals the caption on `group-hover`, which is mouse-only and
-          fails keyboard and touch users. The scrim here is opaque enough at rest that the
-          client name already clears 4.5:1 against white text; hover just deepens it and
-          nudges the card up (whileHover y:-20 from the reference) as a bonus cue, not the
-          only cue. */}
+      {/* The reference captions each card. These are unlabelled on purpose, so the scrim's
+          only job is to seat a bright screenshot against the near-black page instead of
+          making caption text legible: a thin ring plus a shallow foot, lifting on hover.
+          A full `from-ink` wash here would flatten the very screens the wall is showing. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-ink via-ink/50 to-transparent opacity-90 transition-opacity duration-300 group-hover/product:opacity-100"
+        className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-white/10 transition-opacity duration-300 group-hover/product:ring-white/20"
       />
-      <figcaption className="absolute inset-x-0 bottom-0 p-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/70">
-          {screen.page}
-        </p>
-        <p className="mt-1 font-display text-sm font-bold leading-tight text-white sm:text-base">
-          {screen.client}
-        </p>
-      </figcaption>
-    </motion.figure>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 rounded-b-xl bg-gradient-to-t from-ink/70 to-transparent opacity-80 transition-opacity duration-300 group-hover/product:opacity-40"
+      />
+    </motion.div>
+  );
+}
+
+// Each row translates by up to 1000px, so a row narrower than the viewport plus that
+// travel slides clean off one edge. Splitting 11 screens 4/4/3 did exactly that: measured
+// at the deepest snap stop, the bottom row left an 840px void on the left — the same "big
+// empty space" the client review called out. Five per row is what the reference layout
+// uses and what keeps every row covering the viewport for the whole scroll.
+const ROW_LENGTH = 5;
+const ROW_COUNT = 3;
+
+/**
+ * Lays the screens out as ROW_COUNT rows of ROW_LENGTH, cycling the list when there are
+ * fewer screens than slots. A repeat therefore lands two rows below its twin and on the
+ * opposite side of the row, which is as far apart as the grid allows.
+ */
+function buildRows(items) {
+  return Array.from({ length: ROW_COUNT }, (_, row) =>
+    Array.from({ length: ROW_LENGTH }, (_, column) => {
+      const slot = row * ROW_LENGTH + column;
+      // `key` rather than `id`: with cycling, one screen can occupy several slots and
+      // React needs those to be distinct.
+      return { ...items[slot % items.length], key: String(slot) };
+    })
   );
 }
 
@@ -72,7 +88,7 @@ function ParallaxRow({ screens, translate, reverse, eager, className }) {
     >
       {screens.map((screen) => (
         <ShowcaseCard
-          key={screen.id}
+          key={screen.key}
           screen={screen}
           loading={eager ? 'eager' : 'lazy'}
           sizeClassName="h-40 w-60 flex-shrink-0 sm:h-56 sm:w-80 md:h-72 md:w-[26rem] lg:h-96 lg:w-[30rem]"
@@ -86,7 +102,6 @@ function ParallaxRow({ screens, translate, reverse, eager, className }) {
 // card — matching the reference, and cheaper than 15 independent spring subscriptions.
 function AnimatedParallax({ items, header }) {
   const ref = useRef(null);
-  const isSingleItem = items.length === 1;
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
   // `offset: ['start start', 'end start']` means progress runs from the section's top
@@ -116,15 +131,15 @@ function AnimatedParallax({ items, header }) {
     SPRING_CONFIG
   );
   const rotateX = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [0, 0] : [15, 0]),
+    useTransform(scrollYProgress, [0, 0.2], [15, 0]),
     SPRING_CONFIG
   );
   const opacity = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [1, 1] : [0.2, 1]),
+    useTransform(scrollYProgress, [0, 0.2], [0.2, 1]),
     SPRING_CONFIG
   );
   const rotateZ = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [0, 0] : [20, 0]),
+    useTransform(scrollYProgress, [0, 0.2], [20, 0]),
     SPRING_CONFIG
   );
   // The reference settles this at +500. That assumes a page where the card wall is the
@@ -132,14 +147,11 @@ function AnimatedParallax({ items, header }) {
   // leaves a ~440px band of empty background between the header and the first row for the
   // whole middle of the scroll. +160 keeps the same fly-down entrance without the void.
   const translateY = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], isSingleItem ? [0, 0] : [-700, 160]),
+    useTransform(scrollYProgress, [0, 0.2], [-700, 160]),
     SPRING_CONFIG
   );
 
-  const rowSize = Math.ceil(items.length / 3);
-  const firstRow = items.slice(0, rowSize);
-  const secondRow = items.slice(rowSize, rowSize * 2);
-  const thirdRow = items.slice(rowSize * 2, rowSize * 3);
+  const [firstRow, secondRow, thirdRow] = buildRows(items);
 
   return (
     <div
@@ -155,22 +167,17 @@ function AnimatedParallax({ items, header }) {
       <motion.div style={{ rotateX, rotateZ, translateY, opacity }}>
         <ParallaxRow
           screens={firstRow}
-          translate={isSingleItem ? 0 : translateX}
+          translate={translateX}
           reverse
           eager
-          className={cn(
-            isSingleItem && 'justify-center px-6',
-            secondRow.length > 0 && 'mb-8 sm:mb-12 md:mb-20'
-          )}
+          className="mb-8 sm:mb-12 md:mb-20"
         />
-        {secondRow.length > 0 && (
-          <ParallaxRow
-            screens={secondRow}
-            translate={translateXReverse}
-            className={thirdRow.length > 0 && 'mb-8 sm:mb-12 md:mb-20'}
-          />
-        )}
-        {thirdRow.length > 0 && <ParallaxRow screens={thirdRow} translate={translateX} reverse />}
+        <ParallaxRow
+          screens={secondRow}
+          translate={translateXReverse}
+          className="mb-8 sm:mb-12 md:mb-20"
+        />
+        <ParallaxRow screens={thirdRow} translate={translateX} reverse />
       </motion.div>
     </div>
   );

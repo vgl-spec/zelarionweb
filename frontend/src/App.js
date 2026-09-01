@@ -9,6 +9,7 @@ import Navigation2 from './sections/Navigation2';
 import HeroStudio from './sections/HeroStudio';
 import CredibilityBar from './sections/CredibilityBar';
 import ScrollExpandShowcase from './sections/ScrollExpandShowcase';
+import CapabilityWall from './sections/CapabilityWall';
 import WorkShowcase from './sections/WorkShowcase';
 import ServicesSection from './sections/ServicesSection';
 import ProcessSection from './sections/ProcessSection';
@@ -66,6 +67,7 @@ function HomePage() {
       <div id="work">
         <WorkShowcase limit={4} showViewAll />
       </div>
+      <CapabilityWall />
       <ServicesSection />
       <ProcessSection />
       <div id="faq">
