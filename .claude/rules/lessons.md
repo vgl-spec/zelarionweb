@@ -7,6 +7,38 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-09-01 (later: an idle rAF loop is not free)
+
+- **An always-running `useAnimationFrame` loop made a DIFFERENT component's timing test
+  flake 1 run in 3.** `CapabilityWall` ran two rAF loops (plus a `useVelocity` spring
+  each) for the life of the page, on every route, whether or not the section was on
+  screen. `verify-hover` then intermittently reported "opened before the 650ms delay
+  elapsed" -- a `setTimeout` cannot fire early, so the real cause was main-thread pressure
+  skewing the test's own clock relative to the page's. Gating both loops on an
+  `IntersectionObserver` (`rootMargin: '200px 0px'`, read through a ref so the observer
+  never re-renders the row) took it to 5/5 green. **A flaky test in an untouched component
+  can be the honest signal that the component you DID add is too expensive.** Read a new
+  intermittent failure as evidence about the change, not as noise to re-run past.
+
+- **Structured data naming people must be backed by visible page content.** Adding four
+  named `employee` entries to the Organization JSON-LD while the site had no team surface
+  at all is the "marked-up content is not visible to readers" pattern Google's own
+  guidelines call out. The fix is not to drop the markup -- it is to render the same names
+  and the same `addressLocality` on the page, and assert the two agree
+  (`document.body.innerText.includes(person.name)` per entry).
+
+- **`sameAs` linked nowhere on the page is a weak entity signal.** A profile asserted only
+  to the crawler is worth less than one a visitor can click. Ship the visible link and the
+  `sameAs` entry together, and assert the `href` matches the `sameAs` string exactly so
+  they cannot drift apart.
+
+- **A knowledge panel is not markup and cannot be built.** It comes from Google's
+  Knowledge Graph, which is fed by independent corroboration (Wikipedia/Wikidata,
+  Crunchbase, LinkedIn, press). Canva's panel literally prints "Source: Wikipedia". For a
+  small studio the achievable equivalent is a verified Google Business Profile plus
+  consistent `sameAs`; promising the Canva-style Founders/HQ/Founded panel would be
+  promising something no code change can deliver.
+
 ## 2026-09-01 (a short row is an empty row)
 
 - **A parallax row narrower than the viewport PLUS its own travel slides clean off the

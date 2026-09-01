@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
+import { ArrowRight, Mail, Phone, MapPin, ArrowUp, Facebook } from 'lucide-react';
 import { cn, prefersReducedMotion } from '../lib/utils';
 
 // CRA has no SSR, so this guard never actually skips anything at runtime -- kept
@@ -25,9 +25,27 @@ const SITE = {
     // `phone` is the grouped form a human reads. Keep them in sync.
     phone: '+63 994 332 8595',
     phoneDial: '+639943328595',
-    addressShort: 'Philippines, working with clients internationally',
+    // Names the city, matching `addressLocality` in the Organization JSON-LD. Google
+    // corroborates structured data against what a page actually shows, so the two have
+    // to agree.
+    addressShort: 'Caloocan City, Philippines — working with clients internationally',
+  },
+  // Mirrors `sameAs` in the Organization JSON-LD. A profile asserted only in markup and
+  // linked nowhere on the page is a weaker entity signal than one a visitor can follow.
+  social: {
+    facebook: 'https://www.facebook.com/profile.php?id=61593988440786',
   },
 };
+
+// Published because the same people are named as `founder` and `employee` in the
+// Organization JSON-LD, and Google's structured data guidelines expect marked-up content
+// to be visible on the page rather than asserted only to the crawler.
+const LEADERSHIP = [
+  { name: 'Vergel A. Bautista', role: 'CEO' },
+  { name: 'Jeremiah A. Villaret', role: 'CTO' },
+  { name: 'Lara Aaliyah L. Quinto', role: 'HR & Accounting' },
+  { name: 'Jon Cristian R. Rivella', role: 'Marketing' },
+];
 
 // Dedicated routes exist for all of these (see App.js's ROUTES), so every pill points
 // there directly instead of at a home-page hash anchor -- react-router does not scroll to
@@ -445,6 +463,18 @@ export default function CinematicFooter() {
                   Call Us
                 </MagneticButton>
 
+                <MagneticButton
+                  as="a"
+                  href={SITE.social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer me"
+                  aria-label="Zelarion on Facebook (opens in a new tab)"
+                  className="footer-glass-pill group flex items-center gap-3 rounded-full px-9 py-5 text-sm font-bold md:text-base"
+                >
+                  <Facebook className="cf-text-dim size-5 transition-colors group-hover:text-[var(--foreground)]" />
+                  Facebook
+                </MagneticButton>
+
               </div>
 
               {/* Nav pills */}
@@ -466,6 +496,15 @@ export default function CinematicFooter() {
                 <MapPin className="cf-brand size-4 shrink-0" />
                 {SITE.contact.addressShort}
               </div>
+
+              <ul className="cf-text-dim mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-6 text-center text-[11px]">
+                {LEADERSHIP.map((person) => (
+                  <li key={person.name}>
+                    <span className="text-[var(--foreground)]/70">{person.name}</span>
+                    <span className="opacity-60"> — {person.role}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 

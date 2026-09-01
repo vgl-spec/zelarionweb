@@ -44,7 +44,7 @@ const CARD_SIZE = 'h-40 w-64 sm:h-52 sm:w-[21rem] lg:h-64 lg:w-[26rem]';
  * the seam is invisible. Percentages rather than pixels because the row's width changes
  * with the breakpoint and a pixel wrap would drift out of alignment at every size.
  */
-function DriftRow({ screens, baseVelocity, onSelect }) {
+function DriftRow({ screens, baseVelocity, onSelect, isOnScreen }) {
   const baseX = useMotionValue(0);
   const { scrollY } = useScroll();
   const scrollVelocity = useVelocity(scrollY);
@@ -65,6 +65,11 @@ function DriftRow({ screens, baseVelocity, onSelect }) {
   const pauseFactor = useRef(1);
 
   useAnimationFrame((_, delta) => {
+    // Nothing below this line has any visible effect while the section is off-screen, and
+    // this loop otherwise runs for the life of the page on every route. Reading a ref
+    // rather than state keeps the observer from re-rendering the row.
+    if (!isOnScreen.current) return;
+
     // Ease toward the target so the row glides to a halt rather than snapping, then land
     // exactly on it. Without that final snap the row keeps creeping by a fraction of a
     // pixel forever, which is still a moving target.
@@ -257,6 +262,27 @@ function StaticWall({ screens, onSelect }) {
 export default function CapabilityWall() {
   const [selected, setSelected] = useState(null);
   const isReduced = prefersReducedMotion();
+  const sectionRef = useRef(null);
+  const isOnScreen = useRef(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      // No observer available: fall back to always animating rather than to a dead row.
+      isOnScreen.current = true;
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isOnScreen.current = entry.isIntersecting;
+      },
+      // A margin so the rows are already in motion by the time they scroll into view,
+      // rather than visibly starting from a standstill.
+      { rootMargin: '200px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const handleClose = useCallback(() => setSelected(null), []);
 
@@ -266,6 +292,7 @@ export default function CapabilityWall() {
 
   return (
     <section
+      ref={sectionRef}
       className="relative overflow-hidden py-20 md:py-28"
       data-testid="capability-wall"
       aria-label="Interface work"
@@ -274,8 +301,18 @@ export default function CapabilityWall() {
         <StaticWall screens={SHOWCASE_SCREENS} onSelect={setSelected} />
       ) : (
         <div className="flex flex-col gap-4 sm:gap-6">
-          <DriftRow screens={rowOne} baseVelocity={ROW_ONE_VELOCITY} onSelect={setSelected} />
-          <DriftRow screens={rowTwo} baseVelocity={ROW_TWO_VELOCITY} onSelect={setSelected} />
+          <DriftRow
+            screens={rowOne}
+            baseVelocity={ROW_ONE_VELOCITY}
+            onSelect={setSelected}
+            isOnScreen={isOnScreen}
+          />
+          <DriftRow
+            screens={rowTwo}
+            baseVelocity={ROW_TWO_VELOCITY}
+            onSelect={setSelected}
+            isOnScreen={isOnScreen}
+          />
         </div>
       )}
 
