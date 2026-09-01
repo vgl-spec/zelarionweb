@@ -7,6 +7,54 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-09-01 (a short row is an empty row)
+
+- **A parallax row narrower than the viewport PLUS its own travel slides clean off the
+  screen.** Restoring the hero wall with 11 screens split 4/4/3 looked right at scroll 0
+  and left an **840px void** on the left of the bottom row at the deepest snap stop --
+  the same "big empty space" the client review had already called out once. The reference
+  layout uses five per row for exactly this reason: five 480px cards plus gaps is 2720px,
+  which still covers a 1440px viewport after a 1000px translate; three cards is 1600px and
+  cannot. **Measure the gap at every snap stop, not just at rest** -- `Math.max(0, left)`
+  and `Math.max(0, innerWidth - right)` per row across the scroll turned an argument about
+  taste into five lines of numbers. Cycle the list to fill the row rather than shipping a
+  short one.
+
+- **Playwright checks element stability BEFORE it dispatches the hover, so `.click()` can
+  never trigger a hover-to-pause.** A drifting marquee timed out with "element is not
+  stable" 58 times. That is a chicken-and-egg in the TEST, not proof of a product bug --
+  drive `page.mouse.move()` by hand, wait, then click. But the timeout did surface a real
+  defect underneath: a row that never stops is a moving click target. Pause on
+  `mouseenter` AND `onFocusCapture` (focus does not bubble, so a tile taking keyboard
+  focus would otherwise slide out from under itself).
+
+- **Aim a pointer test at the CONTAINER's centre, never at `.first()` of a moving list.**
+  The first tile in DOM order had drifted to `x = -1758`, so `mouse.move` went outside the
+  viewport and `elementsFromPoint` returned `[]` -- the assertion was measuring nothing.
+  `document.elementFromPoint(...).closest('button')` finds whatever is genuinely under the
+  cursor instead.
+
+- **An exponential ease is still moving when a naive test samples it.** The pause decays
+  ~7% per frame and snaps to zero at ~1.2s; sampling at 800ms caught 2.14px of residual
+  glide and reported a failure about the easing curve rather than about whether the row
+  stops. Know the settle time of your own animation before choosing the sample window.
+
+- **`aspect-[16/9]` over a 1440x900 capture crops 11% off the bottom.** The project tiles
+  had carried the mismatch since they were built, silently violating an explicit
+  "show the whole screenshot" requirement. Match the box to the source ratio (`8/5`)
+  rather than trusting that a 16/9 frame is a safe default for screenshots.
+
+- **A suite that "crashes" may just be pointed at the wrong port.** Six of seven verify
+  scripts exited with a stack trace and `name: 'Error'`; every one defaulted to `:4188`
+  while the server was on `:4193`. `grep -E "FAIL|Error"` hid the actual message
+  (`navigating to "http://127.0.0.1:4188/"`) which was one line further up. Read the whole
+  error before concluding a change broke anything.
+
+- **`npx serve -l <port>` silently ignored the port** and bound 53458. A 30-line node
+  static server is more predictable and lets you set MIME types (which the XML/manifest
+  download trap needs anyway). Resolve its root with `path.resolve` -- a Git-Bash
+  `pwd -W` path mixes separators and a naive `startsWith` guard 403s everything.
+
 ## 2026-08-31 (a bare link preview is a CACHE, not a bug)
 
 - **"The Messenger preview shows nothing" almost never means the tags are wrong.**

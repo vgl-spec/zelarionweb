@@ -9,6 +9,6 @@ export const PROJECTS = [
     sector: 'Industrial Supply',
     summary:
       'For Kaibo PH OPC, Zelarion built custom internal systems shaped around the company’s day-to-day operations, alongside its client-facing web presence.',
-    preview: '/assets/showcase/kaibo-landing.png',
+    preview: '/assets/showcase/kaibo-landing.webp',
   },
 ];
