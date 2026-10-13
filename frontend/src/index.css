@@ -170,3 +170,60 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- Page-to-page transition (components/PageTransition.jsx) ----------
+   The rendered clips carry only the overlay (faceted band, grid plane, logo). The old page's
+   slide-and-dim and the new page's rise-and-sharpen are done here on <main>, and only while a
+   transition runs, because a transform on <main> changes how fixed-position children inside
+   it are placed. */
+.zt-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+.zt-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  pointer-events: none;
+}
+/* Video path: one clip at a time, the opaque hold frame between them. */
+.zt-root[data-mode='video'] video[data-show='true'] { opacity: 1; }
+.zt-root[data-mode='video'][data-phase='hold'] .zt-hold { opacity: 1; }
+/* The reveal clip's first frame is the same full cover as the hold frame, and it is already
+   decoded while hidden, so the swap is seamless. Any delay here would hide the split itself:
+   the clip uncovers most of the screen within its first 0.15 s. */
+.zt-root[data-mode='video'][data-phase='reveal'] .zt-hold { opacity: 0; }
+.zt-root[data-mode='video'][data-phase='reveal'] video[data-show='true'] { z-index: 1; }
+/* CSS path (Safari, iOS): the same hold frame slides in from the top right and out to the
+   bottom left along the band's 45-degree line. */
+.zt-root[data-mode='css'] .zt-hold {
+  opacity: 1;
+  transform: translate(100%, -100%);
+}
+.zt-root[data-mode='css'][data-phase='cover'] .zt-hold,
+.zt-root[data-mode='css'][data-phase='hold'] .zt-hold {
+  transform: none;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.zt-root[data-mode='css'][data-phase='reveal'] .zt-hold {
+  transform: translate(-100%, 100%);
+  transition: transform 0.55s cubic-bezier(0.7, 0, 0.84, 0);
+}
+html[data-zt='leaving'] main {
+  transform: translateX(-4%);
+  filter: brightness(0.6);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+}
+html[data-zt='enter-start'] main {
+  transform: translateY(8px);
+  filter: blur(6px);
+}
+html[data-zt='entering'] main {
+  transform: none;
+  filter: none;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+}

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import SmoothScroll from './components/SmoothScroll';
 import ScrollToHash from './components/ScrollToHash';
+import PageTransition from './components/PageTransition';
 import ScrollSnap from './components/ScrollSnap';
 import Seo from './components/Seo';
 import Navigation2 from './sections/Navigation2';
@@ -148,6 +149,8 @@ function App() {
           from "just mounted" -- a fresh instance per route would see every navigation as a
           first mount and never fire the scroll-to-top fallback. */}
       <ScrollToHash />
+      {/* Also outside the per-route shell, so the overlay survives the page swap it covers. */}
+      <PageTransition />
       <Routes>
         {ROUTES.map(({ path, element, withTravellingCore, title, description }) => (
           <Route

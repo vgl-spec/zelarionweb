@@ -7,6 +7,21 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-10-13 (page transition clips)
+
+- **Measure a rendered clip's alpha before timing layers around it.** The page-transition
+  reveal clip goes from 100% cover to 7% in its first 0.15 s. A 150 ms fade on the opaque hold
+  frame beneath it hid the whole split, so the reveal looked like a plain cut. Decode frames
+  with `ffmpeg -c:v libvpx-vp9` (the default decoder drops VP9 alpha) and check coverage per
+  frame. The fix: drop the hold frame in the same render as the clip appears; its first frame
+  is already decoded while hidden, so the swap is seamless.
+- **WebM alpha is Chrome, Edge and Firefox only.** Safari and every iOS browser play WebM but
+  drop the alpha, showing an opaque black box. `PageTransition` sends WebKit to a CSS path that
+  slides the hold frame instead; keep that branch when touching the component.
+- **A static test server on Windows must `path.resolve` its root.** `path.join` returns
+  backslashes, so a `startsWith(root)` guard against a forward-slash root rejects every file
+  and the SPA fallback serves index.html for each script ("Unexpected token '<'").
+
 ## 2026-09-01 (unlisted is not private)
 
 - **An unlinked route is UNLISTED, never private.** /team is absent from the header, the
