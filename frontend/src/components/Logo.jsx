@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/utils';
 
-// Zelarion wordmark: faceted X mark + gradient wordmark (gradient #9B99FE -> #2BC8B7)
+// Zelarion lockup: the faceted Z with code brackets (brand mark since October 2026) and the wordmark.
 export default function Logo({ className, showWord = true }) {
   return (
     <a
@@ -13,9 +13,9 @@ export default function Logo({ className, showWord = true }) {
       <img
         src="/assets/logo-mark-192.png"
         alt="Zelarion"
-        width="30"
-        height="30"
-        className="h-[30px] w-[30px] shrink-0 object-contain transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-[8deg] group-hover:scale-105"
+        width="34"
+        height="34"
+        className="h-[34px] w-[34px] shrink-0 object-contain transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-[8deg] group-hover:scale-105"
       />
       {showWord && (
         <span className="font-display text-[19px] font-bold tracking-tightest text-text">

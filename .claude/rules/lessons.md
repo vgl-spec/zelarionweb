@@ -16,8 +16,10 @@
   frame. The fix: drop the hold frame in the same render as the clip appears; its first frame
   is already decoded while hidden, so the swap is seamless.
 - **WebM alpha is Chrome, Edge and Firefox only.** Safari and every iOS browser play WebM but
-  drop the alpha, showing an opaque black box. `PageTransition` sends WebKit to a CSS path that
-  slides the hold frame instead; keep that branch when touching the component.
+  drop the alpha, showing an opaque black box. This is one reason the transition was later
+  rebuilt in CSS (two clip-path halves): it looks the same everywhere and its timing is ours.
+- **CRA bundles every `url()` in `src/*.css`.** A path to a file in `public/` fails the build
+  ("Can't resolve '/assets/...'"). Set such images inline in JSX or reference them from HTML.
 - **A static test server on Windows must `path.resolve` its root.** `path.join` returns
   backslashes, so a `startsWith(root)` guard against a forward-slash root rejects every file
   and the SPA fallback serves index.html for each script ("Unexpected token '<'").
