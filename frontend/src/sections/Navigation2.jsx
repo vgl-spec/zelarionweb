@@ -221,6 +221,19 @@ function NavLink({ to, label, pathname }) {
 export default function Navigation2() {
   const { pathname } = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // The menu is controlled rather than left to <SheetClose>: PageTransition cancels a link's
+  // default action so it can cover the screen first, and Radix's SheetClose skips closing on
+  // a default-prevented click, which left the menu open on the new page. Closing here also
+  // covers back/forward, which changes the page without any click in the menu.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  const closeMenuOnLink = (event) => {
+    if (event.target.closest('a[href]')) setMenuOpen(false);
+  };
 
   useEffect(() => {
     let frame = 0;
@@ -279,13 +292,13 @@ export default function Navigation2() {
           </Link>
         </div>
 
-        <Sheet>
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="sm" className="h-11 w-11 px-0 lg:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[85vw] sm:max-w-sm">
+          <SheetContent side="left" className="w-[85vw] sm:max-w-sm" onClick={closeMenuOnLink}>
             <SheetHeader>
               {/* Visually hidden: Radix requires an accessible dialog title even
                   though the logo below already communicates this visually. */}

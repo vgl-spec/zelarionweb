@@ -7,6 +7,20 @@
 > Format: one bold takeaway per bullet, then the mechanism/cause and the fix.
 > Keep it to what a future session needs to avoid the trap — not a changelog.
 
+## 2026-10-13 (mobile menu stayed open)
+
+- **A global click handler that calls preventDefault breaks Radix close buttons.** Radix's
+  `SheetClose` (and every `composeEventHandlers` default) skips its own handler when the event
+  is already default-prevented. PageTransition prevents link clicks to play the cover, so the
+  mobile menu never closed. The menu is now controlled in Navigation2: it closes on any link
+  click inside it and on every pathname change.
+- **React does not remount SiteShell between routes.** Each Route renders the same component
+  type at the same spot, so React reuses it and state such as an open menu survives navigation.
+  Reset per-page UI state on `pathname` explicitly.
+- **Tailwind cannot see class names joined at runtime.** `'data-[state=closed]:' + exit` in
+  sheet.jsx generated no CSS, so the sheet had no open or close animation at all. Write every
+  variant class as one literal string.
+
 ## 2026-10-13 (page transition clips)
 
 - **Measure a rendered clip's alpha before timing layers around it.** The page-transition

@@ -15,7 +15,7 @@ const SheetOverlay = React.forwardRef(({ className, ...props }, ref) => {
       data-slot="sheet-overlay"
       className={cn(
         'fixed inset-0 z-50 bg-background/80 backdrop-blur-sm',
-        'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
+        'data-[state=open]:animate-fade-in data-[state=closed]:animate-[fade-out_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]',
         className
       )}
       {...props}
@@ -27,26 +27,30 @@ SheetOverlay.displayName = DialogPrimitive.Overlay.displayName;
 // side -> [edge classes, enter animation, exit animation]. Kept as a plain
 // map (not cva) because the animation choice depends on `side`, not just a
 // class string swap — cva can't express "pick a different keyframe name".
+// Each class is written out whole, variant included: Tailwind only generates classes it can
+// find as literal text, so a variant joined on at runtime ('data-[state=closed]:' + exit)
+// produced no CSS and the sheet opened and closed with no animation at all. Exits are a
+// 0.5 s ease-out so the panel glides away rather than snapping shut.
 const SIDE_CONFIG = {
   top: {
     edge: 'inset-x-0 top-0 border-b',
-    enter: 'animate-slide-in-top',
-    exit: 'animate-slide-out-top',
+    enter: 'data-[state=open]:animate-slide-in-top',
+    exit: 'data-[state=closed]:animate-[slide-out-top_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]',
   },
   bottom: {
     edge: 'inset-x-0 bottom-0 border-t',
-    enter: 'animate-slide-in-bottom',
-    exit: 'animate-slide-out-bottom',
+    enter: 'data-[state=open]:animate-slide-in-bottom',
+    exit: 'data-[state=closed]:animate-[slide-out-bottom_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]',
   },
   left: {
     edge: 'inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
-    enter: 'animate-slide-in-left',
-    exit: 'animate-slide-out-left',
+    enter: 'data-[state=open]:animate-slide-in-left',
+    exit: 'data-[state=closed]:animate-[slide-out-left_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]',
   },
   right: {
     edge: 'inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
-    enter: 'animate-slide-in-right',
-    exit: 'animate-slide-out-right',
+    enter: 'data-[state=open]:animate-slide-in-right',
+    exit: 'data-[state=closed]:animate-[slide-out-right_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]',
   },
 };
 
@@ -64,8 +68,8 @@ export const SheetContent = React.forwardRef(({ side = 'right', className, child
         data-slot="sheet-content"
         className={cn(
           'fixed z-50 flex flex-col gap-4 border-border bg-surface p-6 text-foreground shadow-[0_20px_60px_-12px_rgba(0,0,0,0.7)]',
-          'data-[state=open]:' + enter,
-          'data-[state=closed]:' + exit,
+          enter,
+          exit,
           edge,
           className
         )}
