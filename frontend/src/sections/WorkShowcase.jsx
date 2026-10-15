@@ -23,7 +23,7 @@ export default function WorkShowcase({ limit, showViewAll = false, className }) 
             Websites and systems built for how a business really runs.
           </h2>
           <p className="mt-4 text-body-lg text-text-dim">
-            A motorcycle parts counter and a spring resort. Each tile is a current landing-page
+            A motorcycle parts counter, a spring resort and a concept B2B site. Each tile is a current landing-page
             capture; hover or tap to learn more.
           </p>
         </Reveal>

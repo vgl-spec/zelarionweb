@@ -15,8 +15,8 @@ export default function WorkPage() {
               Custom internal systems shaped around the way your business operates.
             </h1>
             <p className="mt-5 max-w-2xl text-body-lg text-text-dim">
-              A parts counter with live stock and a spring resort website. Different businesses,
-              one approach: build around how the business actually works.
+              A parts counter with live stock, a resort website and a concept B2B site. Different
+              businesses, one approach: build around how the business actually works.
             </p>
           </Reveal>
         </div>
