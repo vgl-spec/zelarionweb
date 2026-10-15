@@ -559,7 +559,7 @@
   marquee is legitimately 4435px wide), because they never contribute to `scrollWidth`.
 
 - **Never put overlay text over a screenshot of a website.** The scroll-expand section used
-  the full Kaibo landing page as its full-bleed media, so that site's own headline sat under
+  a full client landing page as its full-bleed media, so that site's own headline sat under
   Zelarion's headline and both became unreadable. The original component used an abstract
   photo for exactly this reason. Fix: crop to a region of the same screenshot with no type in
   it — still genuinely the client's build, but it reads as atmosphere.

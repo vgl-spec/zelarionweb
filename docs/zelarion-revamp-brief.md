@@ -34,9 +34,8 @@ CEO · CTO · Senior UI/UX · Chief Marketing Officer (CMO)
 
 ### Footer
 
-Match the animated footer from the KaiboPH project at
-`C:/Users/Win10/Desktop/Projects/Company/KaiboPH` — read how it is built there and port the
-technique. This is the last instruction that survived truncation; anything the requester said
+Use an animated cinematic footer. It is now implemented in `frontend/src/sections/CinematicFooter.jsx`;
+read how it is built there. This is the last instruction that survived truncation; anything the requester said
 about the footer *after* the Navigation2 code block is missing.
 
 ## Cursor Trail Contact section — full spec

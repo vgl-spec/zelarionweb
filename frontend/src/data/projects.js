@@ -1,14 +1,23 @@
-// Kaibo PH OPC is the sole current portfolio case study. The project card and the
-// homepage hero share the same freshly captured landing-page image so the site never
-// presents an outdated screen as current work.
+// The portfolio. Every project card and the homepage hero wall read from this list, and each
+// `preview` is a captured landing page, so the site never presents an outdated screen as
+// current work. Screenshots are 8:5 (1400x875) to fill the card without cropping.
 export const PROJECTS = [
   {
-    id: 'kaibo-ph-opc',
-    name: 'Kaibo PH OPC',
-    domain: 'kaiboph.vercel.app',
-    sector: 'Industrial Supply',
+    id: 'denz-motor-shop',
+    name: 'Denz Motor Shop',
+    domain: 'denz-motorshop.vercel.app',
+    sector: 'Parts catalogue',
     summary:
-      'For Kaibo PH OPC, Zelarion built custom internal systems shaped around the company’s day-to-day operations, alongside its client-facing web presence.',
-    preview: '/assets/showcase/kaibo-landing.webp',
+      'An online catalogue for a Quezon City motorcycle parts counter that sells Honda and Yamaha parts. Customers check live stock and prices across eleven categories, see repair rates, and keep service history and maintenance reminders in My Garage, then pay and pick up in store.',
+    preview: '/assets/showcase/denz-landing.webp',
+  },
+  {
+    id: 'villa-crisanta',
+    name: 'Villa Crisanta',
+    domain: 'villa-crisanta.com',
+    sector: 'Resort website',
+    summary:
+      'A website for a spring resort in Laguna with two villas. Each villa has its own page and starting rate, alongside dining and other signature experiences, with a Reserve button on every page to start a booking.',
+    preview: '/assets/showcase/villa-landing.webp',
   },
 ];

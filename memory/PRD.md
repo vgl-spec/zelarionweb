@@ -5,7 +5,7 @@ Award-site-quality (Awwwards/editorial) marketing landing page for **Zelarion**,
 software testing & QA platform. Positioning: "confidence in every release." Dark-first,
 premium motion (Lenis smooth scroll + GSAP ScrollTrigger + framer-motion + R3F), Aurora
 hero background, cinematic scroll-expansion showcase, a travelling 3D "verification core",
-metrics band, editorial features, pricing, founders (names only), FAQ, KaiboPH-style footer.
+metrics band, editorial features, pricing, founders (names only), FAQ, animated cinematic footer.
 
 ### Hard content rules (enforced)
 - No revenue/ARR/"$1M"/growth targets anywhere.

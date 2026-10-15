@@ -13,7 +13,7 @@ if (typeof window !== 'undefined') {
 }
 
 // -------------------------------------------------------------------------
-// 1. ZELARION CONTENT (replaces KaiboPH's @/lib/site + @/lib/content)
+// 1. ZELARION CONTENT (replaces the original template's site and content config)
 // -------------------------------------------------------------------------
 const SITE = {
   name: 'Zelarion',
